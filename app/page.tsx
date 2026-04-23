@@ -1,65 +1,177 @@
-import Image from "next/image";
+'use client';
+import { useState, useEffect, useCallback } from 'react';
+import Header from '@/components/layout/Header';
+import StatsCards from '@/components/dashboard/StatsCards';
+import PortfolioTable from '@/components/dashboard/PortfolioTable';
+import PortfolioAllocation from '@/components/dashboard/PortfolioAllocation';
+import ConcentrationRisk from '@/components/dashboard/ConcentrationRisk';
+import StrategyMode from '@/components/dashboard/StrategyMode';
+import RecoveryPlanCard from '@/components/dashboard/RecoveryPlanCard';
+import ScenarioOutlook from '@/components/dashboard/ScenarioOutlook';
+import BehavioralGuard from '@/components/dashboard/BehavioralGuard';
+import AssetModal from '@/components/modals/AssetModal';
+import { CryptoAsset, Portfolio } from '@/lib/types';
+import { loadPortfolio, savePortfolio } from '@/lib/storage';
+import { calcPortfolioStats, calcAllocation, calcRiskScore } from '@/lib/calculations';
+import { generateStrategyResult } from '@/lib/strategies';
+import { generateScenarios } from '@/lib/scenarios';
+import { analyzeBehavior } from '@/lib/behavioral';
+import { fetchPrices } from '@/lib/coingecko';
 
-export default function Home() {
+export default function Dashboard() {
+  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editAsset, setEditAsset] = useState<CryptoAsset | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<string>(new Date().toISOString());
+
+  // Load from storage on mount
+  useEffect(() => {
+    const p = loadPortfolio();
+    setPortfolio(p);
+    setLastUpdated(p.lastUpdated);
+  }, []);
+
+  // Persist on change
+  useEffect(() => {
+    if (portfolio) {
+      savePortfolio(portfolio);
+    }
+  }, [portfolio]);
+
+  const refreshPrices = useCallback(async () => {
+    if (!portfolio) return;
+    setRefreshing(true);
+    try {
+      const ids = portfolio.assets.map((a) => a.coinGeckoId);
+      const prices = await fetchPrices(ids);
+      setPortfolio((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          assets: prev.assets.map((a) => ({
+            ...a,
+            currentPrice: prices[a.coinGeckoId]?.usd ?? a.currentPrice,
+            change24h: prices[a.coinGeckoId]?.usd_24h_change ?? a.change24h,
+          })),
+        };
+      });
+      setLastUpdated(new Date().toISOString());
+    } catch {
+      // silently fail — keep existing prices
+    } finally {
+      setRefreshing(false);
+    }
+  }, [portfolio]);
+
+  // Auto-refresh every 60s
+  useEffect(() => {
+    const interval = setInterval(refreshPrices, 60_000);
+    return () => clearInterval(interval);
+  }, [refreshPrices]);
+
+  if (!portfolio) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-zinc-500 text-sm">Loading...</div>
+      </div>
+    );
+  }
+
+  const stats = calcPortfolioStats(portfolio.assets);
+  const allocation = calcAllocation(portfolio.assets);
+  const risk = calcRiskScore(portfolio.assets);
+  const strategyResult = generateStrategyResult(portfolio.assets, portfolio.strategy, portfolio.riskMode, portfolio.hedgeRatio);
+  const scenarios = generateScenarios(portfolio.assets);
+  const warnings = analyzeBehavior(portfolio.assets);
+
+  const handleAddAsset = () => {
+    setEditAsset(null);
+    setModalOpen(true);
+  };
+
+  const handleEditAsset = (asset: CryptoAsset) => {
+    setEditAsset(asset);
+    setModalOpen(true);
+  };
+
+  const handleDeleteAsset = (id: string) => {
+    setPortfolio((prev) => prev ? { ...prev, assets: prev.assets.filter((a) => a.id !== id) } : prev);
+  };
+
+  const handleSaveAsset = (asset: CryptoAsset) => {
+    setPortfolio((prev) => {
+      if (!prev) return prev;
+      const existing = prev.assets.find((a) => a.id === asset.id);
+      return {
+        ...prev,
+        assets: existing
+          ? prev.assets.map((a) => (a.id === asset.id ? asset : a))
+          : [...prev.assets, asset],
+      };
+    });
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <>
+      <Header
+        title="Dashboard"
+        subtitle="Overview of your portfolio and recovery system"
+        lastUpdated={lastUpdated}
+        onRefresh={refreshPrices}
+        refreshing={refreshing}
+      />
+
+      {/* Stats row */}
+      <StatsCards stats={stats} risk={risk} />
+
+      {/* Middle row: portfolio table + allocation */}
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="col-span-2">
+          <PortfolioTable
+            assets={portfolio.assets}
+            onAdd={handleAddAsset}
+            onEdit={handleEditAsset}
+            onDelete={handleDeleteAsset}
+          />
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+        <div className="col-span-1 flex flex-col gap-3">
+          <PortfolioAllocation allocation={allocation} />
+          <ConcentrationRisk risk={risk} />
         </div>
-      </main>
-    </div>
+      </div>
+
+      {/* Bottom row: strategy + recovery plan + scenario */}
+      <div className="grid grid-cols-3 gap-4 mb-4">
+        <div className="col-span-1">
+          <StrategyMode
+            strategy={portfolio.strategy}
+            riskMode={portfolio.riskMode}
+            onStrategyChange={(s) => setPortfolio((p) => p ? { ...p, strategy: s } : p)}
+            onRiskModeChange={(r) => setPortfolio((p) => p ? { ...p, riskMode: r } : p)}
+          />
+        </div>
+        <div className="col-span-1">
+          <RecoveryPlanCard
+            result={strategyResult}
+            hedgeRatio={portfolio.hedgeRatio}
+            onHedgeChange={(ratio) => setPortfolio((p) => p ? { ...p, hedgeRatio: ratio } : p)}
+          />
+        </div>
+        <div className="col-span-1">
+          <ScenarioOutlook scenarios={scenarios} />
+        </div>
+      </div>
+
+      {/* Behavioral guard bar */}
+      <BehavioralGuard warnings={warnings} />
+
+      <AssetModal
+        open={modalOpen}
+        asset={editAsset}
+        onClose={() => { setModalOpen(false); setEditAsset(null); }}
+        onSave={handleSaveAsset}
+      />
+    </>
   );
 }
