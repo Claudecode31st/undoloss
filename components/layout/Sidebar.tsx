@@ -1,9 +1,10 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import {
   LayoutDashboard, Briefcase, Target, Shield, FileText,
-  TrendingUp, Clock, Settings, HelpCircle, Cpu, Heart
+  TrendingUp, Clock, Settings, HelpCircle, Heart
 } from 'lucide-react';
 
 const nav = [
@@ -26,11 +27,9 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-4 border-b border-zinc-800/50">
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-orange-500 to-indigo-600 flex items-center justify-center flex-shrink-0">
-            <Cpu size={16} className="text-white" />
-          </div>
+          <Image src="/logo.svg" alt="Undo Loss logo" width={32} height={32} className="flex-shrink-0 rounded-lg" priority />
           <div>
-            <div className="text-xs font-bold text-white leading-tight">Crypto Capital</div>
+            <div className="text-sm font-bold text-white leading-tight">Undo Loss</div>
             <div className="text-[10px] text-zinc-500 leading-tight">Recovery System</div>
           </div>
         </div>

@@ -3,7 +3,7 @@ import './globals.css';
 import Sidebar from '@/components/layout/Sidebar';
 
 export const metadata: Metadata = {
-  title: 'Crypto Capital Recovery System',
+  title: 'Undo Loss',
   description: 'Manage and recover crypto losses through structured, rule-based decision support focused on capital preservation, risk control, and disciplined execution.',
   keywords: ['crypto', 'portfolio', 'recovery', 'risk management', 'DCA', 'hedging'],
 };

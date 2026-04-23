@@ -94,7 +94,7 @@ export default function SettingsPage() {
           <GlassCard className="p-5">
             <h2 className="text-sm font-semibold text-white mb-4">About</h2>
             <div className="space-y-3 text-xs text-zinc-400">
-              <p><span className="text-white font-medium">Crypto Capital Recovery System</span> — A structured, rule-based tool for managing crypto positions and planning recovery strategies.</p>
+              <p><span className="text-white font-medium">Undo Loss</span> — A structured, rule-based tool for managing crypto positions and planning recovery strategies.</p>
               <p>All calculations run locally in your browser. No data is sent to any server. Prices are fetched from CoinGecko&apos;s public API.</p>
               <p className="text-zinc-600">⚠️ This is an educational tool only. Not financial advice. Always do your own research before making investment decisions.</p>
             </div>
