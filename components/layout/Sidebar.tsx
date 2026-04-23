@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 
 const nav = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
   { href: '/strategies', label: 'Strategies', icon: Target },
   { href: '/risk-dashboard', label: 'Risk Dashboard', icon: Shield },
