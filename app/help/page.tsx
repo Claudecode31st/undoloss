@@ -19,8 +19,8 @@ export default function HelpPage() {
       <div className="grid grid-cols-2 gap-4">
         {faqs.map((item, i) => (
           <GlassCard key={i} className="p-4">
-            <h3 className="text-sm font-semibold text-white mb-2">{item.q}</h3>
-            <p className="text-xs text-zinc-400 leading-relaxed">{item.a}</p>
+            <h3 className="text-sm font-semibold t-1 mb-2">{item.q}</h3>
+            <p className="text-xs t-2 leading-relaxed">{item.a}</p>
           </GlassCard>
         ))}
       </div>

@@ -11,11 +11,10 @@ export default function HistoryPage() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
 
   useEffect(() => { setPortfolio(loadPortfolio()); }, []);
-  if (!portfolio) return <div className="text-zinc-500 p-8">Loading...</div>;
+  if (!portfolio) return <div className="t-3 p-8">Loading...</div>;
 
   const stats = calcPortfolioStats(portfolio.assets);
 
-  // Simulated history snapshots based on current data
   const snapshots = Array.from({ length: 7 }, (_, i) => {
     const daysAgo = (6 - i);
     const change = (Math.random() - 0.5) * 0.04;
@@ -33,28 +32,28 @@ export default function HistoryPage() {
 
       <GlassCard className="p-5 mb-4">
         <div className="flex items-center gap-2 mb-4">
-          <Clock size={14} className="text-zinc-400" />
-          <h2 className="text-sm font-semibold text-white">7-Day Portfolio Snapshot</h2>
+          <Clock size={14} className="t-2" />
+          <h2 className="text-sm font-semibold t-1">7-Day Portfolio Snapshot</h2>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
-              <tr className="border-b border-zinc-800/50">
+              <tr style={{ borderBottom: '1px solid var(--border)' }}>
                 {['Date', 'Portfolio Value', 'Unrealized P/L', 'P/L %', 'Status'].map((h) => (
-                  <th key={h} className="text-left text-[11px] text-zinc-500 font-medium px-4 py-2">{h}</th>
+                  <th key={h} className="text-left text-[11px] t-3 font-medium px-4 py-2">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {snapshots.map((snap, i) => (
-                <tr key={i} className="table-row-hover border-b border-zinc-800/30">
-                  <td className="px-4 py-3 text-sm text-zinc-300">{snap.date}</td>
-                  <td className="px-4 py-3 text-sm font-semibold text-white">{fmtCurrency(snap.value)}</td>
-                  <td className={`px-4 py-3 text-sm font-medium ${snap.pnl >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{fmtCurrency(snap.pnl)}</td>
-                  <td className={`px-4 py-3 text-sm font-medium ${snap.pnlPct >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>{fmtPercent(snap.pnlPct)}</td>
+                <tr key={i} className="table-row-hover" style={{ borderBottom: '1px solid var(--border)' }}>
+                  <td className="px-4 py-3 text-sm t-2">{snap.date}</td>
+                  <td className="px-4 py-3 text-sm font-semibold t-1">{fmtCurrency(snap.value)}</td>
+                  <td className={`px-4 py-3 text-sm font-medium ${snap.pnl >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{fmtCurrency(snap.pnl)}</td>
+                  <td className={`px-4 py-3 text-sm font-medium ${snap.pnlPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{fmtPercent(snap.pnlPct)}</td>
                   <td className="px-4 py-3">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border ${snap.pnl >= 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400' : 'bg-red-500/10 border-red-500/20 text-red-400'}`}>
+                    <span className={`text-[10px] px-2 py-0.5 rounded-full border ${snap.pnl >= 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
                       {snap.pnl >= 0 ? 'Gain' : 'Loss'}
                     </span>
                   </td>
@@ -64,7 +63,7 @@ export default function HistoryPage() {
           </table>
         </div>
 
-        <p className="text-[10px] text-zinc-600 mt-3 text-center">
+        <p className="text-[10px] t-3 mt-3 text-center">
           Note: Historical snapshots are illustrative. Connect a data feed for real tracking.
         </p>
       </GlassCard>

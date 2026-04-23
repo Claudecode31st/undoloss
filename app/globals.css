@@ -86,10 +86,10 @@ body {
   border: 1px solid rgba(249, 115, 22, 0.3);
 }
 
-/* ── Semantic text helpers ───────────────────────────────────── */
-.t-1 { color: var(--text-1); }
-.t-2 { color: var(--text-2); }
-.t-3 { color: var(--text-3); }
+/* ── Semantic text utilities (registered with Tailwind v4) ──── */
+@utility t-1 { color: var(--text-1); }
+@utility t-2 { color: var(--text-2); }
+@utility t-3 { color: var(--text-3); }
 
 /* ── Table hover ─────────────────────────────────────────────── */
 .table-row-hover:hover { background: var(--surface-deep); }

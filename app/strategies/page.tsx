@@ -4,7 +4,7 @@ import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
 import { loadPortfolio, savePortfolio } from '@/lib/storage';
 import { generateStrategyResult } from '@/lib/strategies';
-import { calcPortfolioStats, calcBreakevenMove, fmtCurrency, fmtPercent } from '@/lib/calculations';
+import { calcBreakevenMove, fmtCurrency, fmtPercent } from '@/lib/calculations';
 import { Portfolio, StrategyMode, RiskMode } from '@/lib/types';
 import StrategyModeComponent from '@/components/dashboard/StrategyMode';
 
@@ -14,12 +14,14 @@ export default function StrategiesPage() {
   useEffect(() => { setPortfolio(loadPortfolio()); }, []);
   useEffect(() => { if (portfolio) savePortfolio(portfolio); }, [portfolio]);
 
-  if (!portfolio) return <div className="text-zinc-500 p-8">Loading...</div>;
+  if (!portfolio) return <div className="t-3 p-8">Loading...</div>;
 
   const result = generateStrategyResult(portfolio.assets, portfolio.strategy, portfolio.riskMode, portfolio.hedgeRatio);
-  const stats = calcPortfolioStats(portfolio.assets);
 
-  const actionColor = { hold: 'text-blue-400', dca: 'text-emerald-400', hedge: 'text-indigo-400', reduce: 'text-orange-400', reassess: 'text-zinc-300' };
+  const actionColor: Record<string, string> = {
+    hold: 'text-blue-500', dca: 'text-emerald-600', hedge: 'text-indigo-500',
+    reduce: 'text-orange-500', reassess: 't-2',
+  };
 
   return (
     <>
@@ -37,49 +39,46 @@ export default function StrategiesPage() {
 
         <div className="col-span-2 space-y-4">
           <GlassCard className="p-5">
-            <h2 className="text-sm font-semibold text-white mb-1">{result.name}</h2>
-            <p className="text-xs text-zinc-500 mb-4">{result.description}</p>
-
+            <h2 className="text-sm font-semibold t-1 mb-1">{result.name}</h2>
+            <p className="text-xs t-3 mb-4">{result.description}</p>
             <div className="space-y-3">
               {result.actions.map((action) => (
                 <div key={action.order} className="flex items-start gap-3 p-3 glass-dark rounded-xl">
-                  <span className="w-6 h-6 rounded-full bg-zinc-700 flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5">
+                  <span className="w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0 mt-0.5"
+                    style={{ background: 'var(--border-strong)' }}>
                     {action.order}
                   </span>
                   <div>
                     <div className={`text-sm font-semibold ${actionColor[action.type]}`}>{action.title}</div>
-                    <div className="text-xs text-zinc-500 mt-0.5">{action.description}</div>
+                    <div className="text-xs t-3 mt-0.5">{action.description}</div>
                   </div>
                 </div>
               ))}
             </div>
           </GlassCard>
 
-          {/* Per-asset breakeven */}
           <GlassCard className="p-5">
-            <h2 className="text-sm font-semibold text-white mb-4">Per-Asset Breakeven Analysis</h2>
+            <h2 className="text-sm font-semibold t-1 mb-4">Per-Asset Breakeven Analysis</h2>
             <div className="space-y-2">
               {portfolio.assets.map((asset) => {
                 const move = calcBreakevenMove(asset);
                 return (
                   <div key={asset.id} className="flex items-center gap-3 p-3 glass-dark rounded-xl">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
-                      style={{ backgroundColor: asset.color + '33', border: `1px solid ${asset.color}55` }}>
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                      style={{ backgroundColor: asset.color + '33', border: `1px solid ${asset.color}55`, color: asset.color }}>
                       {asset.symbol.slice(0, 2)}
                     </div>
                     <div className="flex-1">
                       <div className="flex justify-between">
-                        <span className="text-sm font-medium text-white">{asset.symbol}</span>
-                        <span className="text-sm font-semibold text-orange-400">Need +{Math.abs(move).toFixed(2)}%</span>
+                        <span className="text-sm font-medium t-1">{asset.symbol}</span>
+                        <span className="text-sm font-semibold text-orange-500">Need +{Math.abs(move).toFixed(2)}%</span>
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <div className="text-xs t-3">
                         Entry: {fmtCurrency(asset.entryPrice)} → Current: {fmtCurrency(asset.currentPrice)}
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className={`text-sm font-semibold ${move <= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                        {fmtPercent(((asset.currentPrice - asset.entryPrice) / asset.entryPrice) * 100)}
-                      </div>
+                    <div className={`text-sm font-semibold ${move <= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {fmtPercent(((asset.currentPrice - asset.entryPrice) / asset.entryPrice) * 100)}
                     </div>
                   </div>
                 );
