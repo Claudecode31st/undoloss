@@ -15,7 +15,7 @@ export default function GlassCard({ children, className = '', hover = false, glo
     : '';
 
   return (
-    <div className={`glass rounded-2xl ${hover ? 'transition-all duration-200 hover:border-zinc-700/70 hover:-translate-y-0.5' : ''} ${glowClass} ${className}`}>
+    <div className={`glass rounded-2xl ${hover ? 'transition-all duration-200 hover:-translate-y-0.5' : ''} ${glowClass} ${className}`}>
       {children}
     </div>
   );

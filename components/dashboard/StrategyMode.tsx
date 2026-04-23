@@ -27,7 +27,7 @@ interface StrategyModeProps {
 export default function StrategyMode({ strategy, riskMode, onStrategyChange, onRiskModeChange }: StrategyModeProps) {
   return (
     <GlassCard className="p-4 h-full flex flex-col">
-      <h2 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+      <h2 className="text-sm font-semibold t-1 mb-3 flex items-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
         Strategy Mode
       </h2>
@@ -36,38 +36,29 @@ export default function StrategyMode({ strategy, riskMode, onStrategyChange, onR
         {strategies.map(({ mode, name, desc, icon: Icon }) => {
           const active = strategy === mode;
           return (
-            <button
-              key={mode}
-              onClick={() => onStrategyChange(mode)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all duration-150 ${
-                active
-                  ? 'nav-active'
-                  : 'hover:bg-zinc-800/50'
-              }`}
-            >
-              <Icon size={14} className={active ? 'text-orange-400' : 'text-zinc-500'} />
+            <button key={mode} onClick={() => onStrategyChange(mode)}
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all duration-150 ${active ? 'nav-active' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              <Icon size={14} className={active ? 'text-orange-500' : 't-3'} />
               <div>
-                <div className={`text-xs font-medium ${active ? 'text-orange-300' : 'text-zinc-300'}`}>{name}</div>
-                <div className="text-[10px] text-zinc-500">{desc}</div>
+                <div className="text-xs font-medium" style={{ color: active ? '#f97316' : 'var(--text-2)' }}>{name}</div>
+                <div className="text-[10px] t-3">{desc}</div>
               </div>
             </button>
           );
         })}
       </div>
 
-      <div className="mt-3 pt-3 border-t border-zinc-800/50">
-        <div className="text-[10px] text-zinc-500 mb-2 font-medium uppercase tracking-wide">Risk Tolerance</div>
+      <div className="mt-3 pt-3" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="text-[10px] t-3 mb-2 font-medium uppercase tracking-wide">Risk Tolerance</div>
         <div className="grid grid-cols-3 gap-1">
           {riskModes.map(({ mode, label }) => (
-            <button
-              key={mode}
-              onClick={() => onRiskModeChange(mode)}
+            <button key={mode} onClick={() => onRiskModeChange(mode)}
               className={`py-1.5 rounded-lg text-[10px] font-medium transition-all duration-150 ${
                 riskMode === mode
-                  ? 'bg-orange-500/20 border border-orange-500/40 text-orange-300'
-                  : 'bg-zinc-800/40 border border-zinc-700/40 text-zinc-500 hover:text-zinc-300'
+                  ? 'bg-orange-500/20 border border-orange-500/40 text-orange-500'
+                  : 'border t-3 hover:t-2'
               }`}
-            >
+              style={riskMode !== mode ? { borderColor: 'var(--border)', background: 'var(--surface-deep)' } : undefined}>
               {label}
             </button>
           ))}

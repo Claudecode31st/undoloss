@@ -12,7 +12,7 @@ interface ScenarioOutlookProps {
 export default function ScenarioOutlook({ scenarios }: ScenarioOutlookProps) {
   return (
     <GlassCard className="p-4 h-full flex flex-col">
-      <h2 className="text-sm font-semibold text-white mb-3 flex items-center gap-2">
+      <h2 className="text-sm font-semibold t-1 mb-3 flex items-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
         Scenario Outlook
       </h2>
@@ -23,9 +23,7 @@ export default function ScenarioOutlook({ scenarios }: ScenarioOutlookProps) {
           const returnStr = s.returnRangeLow >= 0
             ? `+${s.returnRangeLow}% to +${s.returnRangeHigh}%`
             : `${s.returnRangeLow}% to +${s.returnRangeHigh}%`;
-          const timeStr = s.recoveryTimeHigh
-            ? `${s.recoveryTimeLow} - ${s.recoveryTimeHigh} Months`
-            : `${s.recoveryTimeLow}+ Months`;
+          const timeStr = s.recoveryTimeHigh ? `${s.recoveryTimeLow} - ${s.recoveryTimeHigh} Months` : `${s.recoveryTimeLow}+ Months`;
 
           return (
             <div key={s.scenario} className="flex items-center gap-3 p-3 glass-dark rounded-xl">
@@ -38,10 +36,10 @@ export default function ScenarioOutlook({ scenarios }: ScenarioOutlookProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-xs font-semibold text-white truncate">{s.name}</div>
+                  <div className="text-xs font-semibold t-1 truncate">{s.name}</div>
                   <div className={`text-xs font-bold flex-shrink-0 ${s.color}`}>{returnStr}</div>
                 </div>
-                <div className="text-[10px] text-zinc-500">Recovery Time: {timeStr}</div>
+                <div className="text-[10px] t-3">Recovery Time: {timeStr}</div>
               </div>
               <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${s.badgeColor}`}>
                 {s.difficulty}
@@ -51,7 +49,7 @@ export default function ScenarioOutlook({ scenarios }: ScenarioOutlookProps) {
         })}
       </div>
 
-      <p className="text-[9px] text-zinc-600 text-center mt-3">Scenarios are based on historical behavior, not predictions.</p>
+      <p className="text-[9px] t-3 text-center mt-3">Scenarios are based on historical behavior, not predictions.</p>
     </GlassCard>
   );
 }
