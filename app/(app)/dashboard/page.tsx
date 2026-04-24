@@ -6,6 +6,7 @@ import StatsCards from '@/components/dashboard/StatsCards';
 import PortfolioTable from '@/components/dashboard/PortfolioTable';
 import PortfolioAllocation from '@/components/dashboard/PortfolioAllocation';
 import RecoveryPanel from '@/components/dashboard/RecoveryPanel';
+import DCAPanel from '@/components/dashboard/DCAPanel';
 import AssetModal from '@/components/modals/AssetModal';
 import { CryptoAsset, Portfolio, Prefs } from '@/lib/types';
 import { loadPortfolio, savePortfolio, loadPrefs } from '@/lib/storage';
@@ -163,6 +164,7 @@ export default function Dashboard() {
             {portfolioTable}
             <PortfolioAllocation assets={portfolio.assets} />
             <RecoveryPanel assets={portfolio.assets} />
+            <DCAPanel assets={portfolio.assets} />
           </div>
         </MobileSection>
       </div>
@@ -176,6 +178,7 @@ export default function Dashboard() {
           </div>
         </div>
         <RecoveryPanel assets={portfolio.assets} />
+        <DCAPanel assets={portfolio.assets} />
       </div>
 
       <AssetModal
