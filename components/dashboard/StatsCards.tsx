@@ -85,15 +85,21 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
       </GlassCard>
 
       {/* 5. Breakeven */}
-      <GlassCard className="p-4" hover>
-        <div className="p-2 rounded-lg bg-orange-500/10 border border-orange-500/20 w-fit mb-3">
-          <Target size={16} className="text-orange-500" />
+      <GlassCard className="p-4" hover glow={breakevenMove <= 0 ? 'green' : undefined}>
+        <div className={`p-2 rounded-lg w-fit mb-3 ${breakevenMove <= 0 ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
+          <Target size={16} className={breakevenMove <= 0 ? 'text-emerald-500' : 'text-orange-500'} />
         </div>
         <div className="text-[11px] t-3 mb-1">Portfolio Breakeven</div>
         <div className="text-xl font-bold t-1">{fmtCurrency(stats.breakevenValue)}</div>
-        <div className="text-xs text-orange-500 mt-1">
-          Need <span className="font-medium">+{Math.abs(breakevenMove).toFixed(2)}%</span>
-        </div>
+        {breakevenMove <= 0 ? (
+          <div className="text-xs text-emerald-500 mt-1 font-medium">
+            ✓ In profit +{Math.abs(breakevenMove).toFixed(2)}%
+          </div>
+        ) : (
+          <div className="text-xs text-orange-500 mt-1">
+            Need <span className="font-medium">+{breakevenMove.toFixed(2)}%</span> to recover
+          </div>
+        )}
       </GlassCard>
 
       {/* 6. Risk Score — detailed breakdown */}
