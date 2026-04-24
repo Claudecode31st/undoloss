@@ -25,7 +25,7 @@ export default function RecoveryPlanPage() {
     <>
       <Header title="Recovery Plan" subtitle="Your personalized recovery roadmap" lastUpdated={portfolio.lastUpdated} />
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="col-span-1 space-y-3">
           <GlassCard className="p-5">
             <h2 className="text-sm font-semibold t-1 mb-4">Recovery Summary</h2>

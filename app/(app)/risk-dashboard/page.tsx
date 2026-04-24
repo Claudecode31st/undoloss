@@ -29,7 +29,7 @@ export default function RiskDashboardPage() {
     <>
       <Header title="Risk Dashboard" subtitle="Portfolio risk analysis and monitoring" lastUpdated={portfolio.lastUpdated} />
 
-      <div className="grid grid-cols-3 gap-4 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
         <GlassCard className="p-6 flex flex-col items-center col-span-1">
           <h2 className="text-sm font-semibold t-1 mb-4">Overall Risk Score</h2>
           <div className="w-48 h-28">
@@ -69,7 +69,7 @@ export default function RiskDashboardPage() {
         </GlassCard>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <GlassCard className="p-5">
           <h2 className="text-sm font-semibold t-1 mb-4">Asset Concentration</h2>
           <div className="space-y-2">

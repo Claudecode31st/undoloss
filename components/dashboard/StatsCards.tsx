@@ -19,7 +19,7 @@ export default function StatsCards({ stats, risk }: StatsCardsProps) {
   const riskAngle = (risk.score / 100) * 180;
 
   return (
-    <div className="grid grid-cols-5 gap-3 mb-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
       <GlassCard className="p-4" hover>
         <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 w-fit mb-3">
           <DollarSign size={16} className="text-blue-500" />

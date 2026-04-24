@@ -126,8 +126,8 @@ export default function Dashboard() {
       <StatsCards stats={stats} risk={risk} />
 
       {/* Middle row: portfolio table + allocation */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="col-span-2">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div className="md:col-span-2">
           <PortfolioTable
             assets={portfolio.assets}
             onAdd={handleAddAsset}
@@ -135,15 +135,15 @@ export default function Dashboard() {
             onDelete={handleDeleteAsset}
           />
         </div>
-        <div className="col-span-1 flex flex-col gap-3">
+        <div className="md:col-span-1 flex flex-col gap-3">
           <PortfolioAllocation allocation={allocation} />
           <ConcentrationRisk risk={risk} />
         </div>
       </div>
 
       {/* Bottom row: strategy + recovery plan + scenario */}
-      <div className="grid grid-cols-3 gap-4 mb-4">
-        <div className="col-span-1">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+        <div>
           <StrategyMode
             strategy={portfolio.strategy}
             riskMode={portfolio.riskMode}
@@ -151,14 +151,14 @@ export default function Dashboard() {
             onRiskModeChange={(r) => setPortfolio((p) => p ? { ...p, riskMode: r } : p)}
           />
         </div>
-        <div className="col-span-1">
+        <div>
           <RecoveryPlanCard
             result={strategyResult}
             hedgeRatio={portfolio.hedgeRatio}
             onHedgeChange={(ratio) => setPortfolio((p) => p ? { ...p, hedgeRatio: ratio } : p)}
           />
         </div>
-        <div className="col-span-1">
+        <div>
           <ScenarioOutlook scenarios={scenarios} />
         </div>
       </div>

@@ -27,7 +27,7 @@ export default function ScenarioSimulatorPage() {
     <>
       <Header title="Scenario Simulator" subtitle="Model market conditions and portfolio outcomes" lastUpdated={portfolio.lastUpdated} />
 
-      <div className="grid grid-cols-2 gap-4 mb-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
         <GlassCard className="p-5">
           <h2 className="text-sm font-semibold t-1 mb-4">What-If Price Simulator</h2>
           <div className="mb-4">
@@ -46,7 +46,7 @@ export default function ScenarioSimulatorPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-2 gap-3">
             <div className="glass-dark rounded-xl p-3">
               <div className="text-[10px] t-3 mb-1">Simulated Value</div>
               <div className="text-base font-bold t-1">{fmtCurrency(simulatedValue)}</div>
