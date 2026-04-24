@@ -82,8 +82,8 @@ body {
 
 /* ── Navigation active ───────────────────────────────────────── */
 .nav-active {
-  background: linear-gradient(135deg, rgba(249, 115, 22, 0.13) 0%, rgba(99, 102, 241, 0.08) 100%);
-  border: 1px solid rgba(249, 115, 22, 0.3);
+  background: rgba(249, 115, 22, 0.12);
+  border: 1px solid rgba(249, 115, 22, 0.25);
 }
 
 /* ── Semantic text utilities (registered with Tailwind v4) ──── */
@@ -114,8 +114,8 @@ input[type="range"]::-webkit-slider-thumb {
   height: 22px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid currentColor;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  border: 1.5px solid rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   cursor: pointer;
 }
 input[type="range"]::-moz-range-thumb {
@@ -123,8 +123,8 @@ input[type="range"]::-moz-range-thumb {
   height: 22px;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid currentColor;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  border: 1.5px solid rgba(0,0,0,0.1);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.12);
   cursor: pointer;
 }
 

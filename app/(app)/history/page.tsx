@@ -37,9 +37,9 @@ export default function HistoryPage() {
         </div>
 
         {/* Mobile rows */}
-        <div className="md:hidden divide-y" style={{ borderTop: '1px solid var(--border)' }}>
+        <div className="md:hidden" style={{ borderTop: '1px solid var(--border)' }}>
           {snapshots.map((snap, i) => (
-            <div key={i} className="flex items-center gap-3 py-3">
+            <div key={i} className="flex items-center gap-3 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
               {/* Date */}
               <div className="w-12 flex-shrink-0 text-center">
                 <div className="text-[11px] font-semibold t-2">{snap.date.split(' ')[0]}</div>
