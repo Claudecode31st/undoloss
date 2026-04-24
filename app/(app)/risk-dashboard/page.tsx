@@ -1,15 +1,11 @@
 'use client';
-import { useState, useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
-import { loadPortfolio } from '@/lib/storage';
 import { calcPortfolioStats, calcRiskScore, calcAllocation, fmtCurrency, fmtPercent } from '@/lib/calculations';
-import { Portfolio } from '@/lib/types';
+import { usePortfolioRefresh } from '@/lib/usePortfolioRefresh';
 
 export default function RiskDashboardPage() {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-
-  useEffect(() => { setPortfolio(loadPortfolio()); }, []);
+  const { portfolio, refreshing, lastUpdated, refresh } = usePortfolioRefresh();
   if (!portfolio) return <div className="t-3 text-sm p-8">Loading...</div>;
 
   const stats = calcPortfolioStats(portfolio.assets);
@@ -27,7 +23,7 @@ export default function RiskDashboardPage() {
 
   return (
     <>
-      <Header title="Risk Dashboard" subtitle="Portfolio risk analysis and monitoring" lastUpdated={portfolio.lastUpdated} />
+      <Header title="Risk Dashboard" subtitle="Portfolio risk analysis and monitoring" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
         <GlassCard className="p-6 flex flex-col items-center col-span-1">

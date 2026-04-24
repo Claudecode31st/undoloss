@@ -5,16 +5,16 @@ import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
 import PortfolioTable from '@/components/dashboard/PortfolioTable';
 import AssetModal from '@/components/modals/AssetModal';
-import { CryptoAsset, Portfolio } from '@/lib/types';
-import { loadPortfolio, savePortfolio, exportPortfolio, importPortfolio } from '@/lib/storage';
+import { CryptoAsset } from '@/lib/types';
+import { savePortfolio, exportPortfolio, importPortfolio } from '@/lib/storage';
 import { calcPortfolioStats, fmtCurrency, fmtPercent } from '@/lib/calculations';
+import { usePortfolioRefresh } from '@/lib/usePortfolioRefresh';
 
 export default function PortfolioPage() {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const { portfolio, setPortfolio, refreshing, lastUpdated, refresh } = usePortfolioRefresh();
   const [modalOpen, setModalOpen] = useState(false);
   const [editAsset, setEditAsset] = useState<CryptoAsset | null>(null);
 
-  useEffect(() => { setPortfolio(loadPortfolio()); }, []);
   useEffect(() => { if (portfolio) savePortfolio(portfolio); }, [portfolio]);
 
   if (!portfolio) return <div className="t-3 text-sm p-8">Loading...</div>;
@@ -23,7 +23,7 @@ export default function PortfolioPage() {
 
   return (
     <>
-      <Header title="Portfolio" subtitle="Manage your crypto positions" lastUpdated={portfolio.lastUpdated} />
+      <Header title="Portfolio" subtitle="Manage your crypto positions" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {[

@@ -1,17 +1,17 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
-import { loadPortfolio, savePortfolio } from '@/lib/storage';
+import { savePortfolio } from '@/lib/storage';
 import { generateStrategyResult } from '@/lib/strategies';
 import { calcBreakevenMove, fmtCurrency, fmtPercent } from '@/lib/calculations';
-import { Portfolio, StrategyMode, RiskMode } from '@/lib/types';
+import { StrategyMode, RiskMode } from '@/lib/types';
 import StrategyModeComponent from '@/components/dashboard/StrategyMode';
+import { usePortfolioRefresh } from '@/lib/usePortfolioRefresh';
 
 export default function StrategiesPage() {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const { portfolio, setPortfolio, refreshing, lastUpdated, refresh } = usePortfolioRefresh();
 
-  useEffect(() => { setPortfolio(loadPortfolio()); }, []);
   useEffect(() => { if (portfolio) savePortfolio(portfolio); }, [portfolio]);
 
   if (!portfolio) return <div className="t-3 p-8">Loading...</div>;
@@ -20,12 +20,12 @@ export default function StrategiesPage() {
 
   const actionColor: Record<string, string> = {
     hold: 'text-blue-500', dca: 'text-emerald-600', hedge: 'text-indigo-500',
-    reduce: 'text-orange-500', reassess: 't-2',
+    reduce: 'text-orange-500', reassess: 'text-amber-600',
   };
 
   return (
     <>
-      <Header title="Strategies" subtitle="Rule-based recovery strategies for your portfolio" lastUpdated={portfolio.lastUpdated} />
+      <Header title="Strategies" subtitle="Rule-based recovery strategies for your portfolio" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="col-span-1">

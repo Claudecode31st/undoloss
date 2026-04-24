@@ -52,12 +52,12 @@ function buildDCA(
     ? [
         { order: 1, type: 'reduce', title: 'Reduce Risk First', description: `Risk score ${risk.score}/100 — trim exposure before adding` },
         { order: 2, type: 'dca',    title: `Stage 1 Buy at ${stage1Price}`, description: `−${(multipliers[0]*100).toFixed(0)}% from current (${riskMode} mode)` },
-        { order: 3, type: 'reassess', title: 'Reassess in 7 Days', description: 'Review price action & risk score before Stage 2' },
+        { order: 3, type: 'reassess', title: 'Review in 7 Days', description: 'Check risk score & price action before Stage 2' },
       ]
     : [
         { order: 1, type: 'dca',    title: `Stage 1 Buy at ${stage1Price}`, description: `−${(multipliers[0]*100).toFixed(0)}% from current (${riskMode} mode)` },
         { order: 2, type: 'dca',    title: `Stage 2 Buy at ${stage2Price}`, description: `−${(multipliers[1]*100).toFixed(0)}% — only if Stage 1 triggered` },
-        { order: 3, type: 'reassess', title: 'Reassess in 7 Days', description: 'Review market structure & adjust buy zones' },
+        { order: 3, type: 'reassess', title: 'Review in 7 Days', description: 'Review market structure & adjust buy zones if needed' },
       ];
 
   return {

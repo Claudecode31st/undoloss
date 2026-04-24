@@ -1,18 +1,16 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
-import { loadPortfolio } from '@/lib/storage';
 import { generateScenarios } from '@/lib/scenarios';
 import { calcPortfolioStats, fmtCurrency, fmtPercent } from '@/lib/calculations';
-import { Portfolio } from '@/lib/types';
+import { usePortfolioRefresh } from '@/lib/usePortfolioRefresh';
 
 export default function ScenarioSimulatorPage() {
-  const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
+  const { portfolio, refreshing, lastUpdated, refresh } = usePortfolioRefresh();
   const [priceChange, setPriceChange] = useState(0);
 
-  useEffect(() => { setPortfolio(loadPortfolio()); }, []);
   if (!portfolio) return <div className="t-3 p-8">Loading...</div>;
 
   const stats = calcPortfolioStats(portfolio.assets);
@@ -25,7 +23,7 @@ export default function ScenarioSimulatorPage() {
 
   return (
     <>
-      <Header title="Scenario Simulator" subtitle="Model market conditions and portfolio outcomes" lastUpdated={portfolio.lastUpdated} />
+      <Header title="Scenario Simulator" subtitle="Model market conditions and portfolio outcomes" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
         <GlassCard className="p-5">
