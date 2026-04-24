@@ -162,8 +162,8 @@ export default function Dashboard() {
   const scenarioOutlook = <ScenarioOutlook scenarios={scenarios} />;
 
   /* Recovery alert banner — shown when portfolio is deeply in the red */
-  const deepLoss = stats.totalInvested > 0 && stats.unrealizedPnL < 0 &&
-    Math.abs(stats.unrealizedPnL / stats.totalInvested) >= 0.3;
+  const deepLoss = stats.totalInvested > 0 && stats.totalUnrealizedPnL < 0 &&
+    Math.abs(stats.totalUnrealizedPnL / stats.totalInvested) >= 0.3;
 
   return (
     <>
@@ -183,7 +183,7 @@ export default function Dashboard() {
           <div className="flex-1 min-w-0">
             <span className="text-sm font-semibold text-red-500">Portfolio in deep drawdown</span>
             <span className="text-xs t-3 ml-2">
-              Down {Math.abs((stats.unrealizedPnL / stats.totalInvested) * 100).toFixed(0)}% · Use the strategy and DCA tools below to plan your recovery
+              Down {Math.abs((stats.totalUnrealizedPnL / stats.totalInvested) * 100).toFixed(0)}% · Use the strategy and DCA tools below to plan your recovery
             </span>
           </div>
         </div>
