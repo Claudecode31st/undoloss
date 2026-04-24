@@ -4,24 +4,23 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import {
-  LayoutDashboard, Briefcase, Target, Shield,
+  LayoutDashboard, Briefcase, Target,
   MoreHorizontal, Calculator, CalendarDays, ShieldOff,
   Settings, HelpCircle, Sun, Moon, X
 } from 'lucide-react';
 
 const primary = [
-  { href: '/dashboard',     label: 'Home',       icon: LayoutDashboard },
-  { href: '/portfolio',     label: 'Portfolio',  icon: Briefcase },
-  { href: '/strategies',    label: 'Strategies', icon: Target },
-  { href: '/risk-dashboard',label: 'Risk',       icon: Shield },
+  { href: '/dashboard',            label: 'Home',       icon: LayoutDashboard },
+  { href: '/portfolio',            label: 'Portfolio',  icon: Briefcase },
+  { href: '/strategies',           label: 'Strategies', icon: Target },
+  { href: '/recovery-calculator',  label: 'Recovery',   icon: Calculator },
 ];
 
 const more = [
-  { href: '/recovery-calculator',  label: 'Recovery Calc',  icon: Calculator },
-  { href: '/dca-planner',          label: 'DCA Planner',    icon: CalendarDays },
-  { href: '/exit-guardian',        label: 'Exit Guardian',  icon: ShieldOff },
-  { href: '/settings',             label: 'Settings',       icon: Settings },
-  { href: '/help',                 label: 'Help',           icon: HelpCircle },
+  { href: '/dca-planner',   label: 'DCA Planner',   icon: CalendarDays },
+  { href: '/exit-guardian', label: 'Exit Guardian', icon: ShieldOff },
+  { href: '/settings',      label: 'Settings',      icon: Settings },
+  { href: '/help',          label: 'Help',          icon: HelpCircle },
 ];
 
 export default function MobileNav() {

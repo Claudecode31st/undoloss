@@ -161,6 +161,10 @@ export default function Dashboard() {
   );
   const scenarioOutlook = <ScenarioOutlook scenarios={scenarios} />;
 
+  /* Recovery alert banner — shown when portfolio is deeply in the red */
+  const deepLoss = stats.totalInvested > 0 && stats.unrealizedPnL < 0 &&
+    Math.abs(stats.unrealizedPnL / stats.totalInvested) >= 0.3;
+
   return (
     <>
       <Header
@@ -170,6 +174,20 @@ export default function Dashboard() {
         onRefresh={refreshPrices}
         refreshing={refreshing}
       />
+
+      {/* Recovery alert */}
+      {deepLoss && (
+        <div className="mb-3 px-4 py-3 rounded-xl flex items-center gap-3"
+          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
+          <span className="text-red-500 text-base flex-shrink-0">⚠</span>
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-semibold text-red-500">Portfolio in deep drawdown</span>
+            <span className="text-xs t-3 ml-2">
+              Down {Math.abs((stats.unrealizedPnL / stats.totalInvested) * 100).toFixed(0)}% · Use the strategy and DCA tools below to plan your recovery
+            </span>
+          </div>
+        </div>
+      )}
 
       {/* Stats — always visible */}
       <StatsCards stats={stats} risk={risk} assetCount={portfolio.assets.length} show24hChange={prefs.show24hChange} />
@@ -186,20 +204,13 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <MobileSection title="Portfolio" preview={previews.portfolio} icon={BarChart2} iconColor="text-blue-500" iconBg="bg-blue-500/10" open={open.portfolio} onToggle={() => toggle('portfolio')}>
-          <div className="space-y-3">
-            {portfolioTable}
-            <PortfolioAllocation allocation={allocation} />
-            {prefs.showConcentrationRisk && <ConcentrationRisk risk={risk} />}
-          </div>
+        {/* Recovery actions first on mobile */}
+        <MobileSection title="Recovery Plan" preview={previews.recovery} icon={ShieldCheck} iconColor="text-emerald-500" iconBg="bg-emerald-500/10" open={open.recovery} onToggle={() => toggle('recovery')}>
+          {recoveryPlan}
         </MobileSection>
 
         <MobileSection title="Strategies" preview={previews.strategy} icon={Sliders} iconColor="text-orange-500" iconBg="bg-orange-500/10" open={open.strategy} onToggle={() => toggle('strategy')}>
           {strategyMode}
-        </MobileSection>
-
-        <MobileSection title="Recovery Plan" preview={previews.recovery} icon={ShieldCheck} iconColor="text-emerald-500" iconBg="bg-emerald-500/10" open={open.recovery} onToggle={() => toggle('recovery')}>
-          {recoveryPlan}
         </MobileSection>
 
         {prefs.showScenarioOutlook && (
@@ -207,32 +218,42 @@ export default function Dashboard() {
             {scenarioOutlook}
           </MobileSection>
         )}
+
+        <MobileSection title="Portfolio" preview={previews.portfolio} icon={BarChart2} iconColor="text-blue-500" iconBg="bg-blue-500/10" open={open.portfolio} onToggle={() => toggle('portfolio')}>
+          <div className="space-y-3">
+            {portfolioTable}
+            <PortfolioAllocation allocation={allocation} />
+            {prefs.showConcentrationRisk && <ConcentrationRisk risk={risk} />}
+          </div>
+        </MobileSection>
       </div>
 
       {/* ── DESKTOP layout ── */}
       <div className="hidden md:block">
-        {/* Row 1: portfolio table + sidebar */}
-        <div className="grid grid-cols-3 gap-4 mb-4 mt-4">
+        {/* Row 1: strategy + recovery + (optional) scenario */}
+        <div className="mt-4 mb-4">
+          {prefs.showScenarioOutlook ? (
+            <div className="grid grid-cols-3 gap-4">
+              <div>{strategyMode}</div>
+              <div>{recoveryPlan}</div>
+              <div>{scenarioOutlook}</div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-4">
+              <div>{strategyMode}</div>
+              <div>{recoveryPlan}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Row 2: portfolio table + sidebar */}
+        <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">{portfolioTable}</div>
           <div className="col-span-1 flex flex-col gap-3">
             <PortfolioAllocation allocation={allocation} />
             {prefs.showConcentrationRisk && <ConcentrationRisk risk={risk} />}
           </div>
         </div>
-
-        {/* Row 2: strategy + recovery + (optional) scenario */}
-        {prefs.showScenarioOutlook ? (
-          <div className="grid grid-cols-3 gap-4">
-            <div>{strategyMode}</div>
-            <div>{recoveryPlan}</div>
-            <div>{scenarioOutlook}</div>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-4">
-            <div>{strategyMode}</div>
-            <div>{recoveryPlan}</div>
-          </div>
-        )}
       </div>
 
       <AssetModal
