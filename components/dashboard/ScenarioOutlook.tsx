@@ -36,14 +36,16 @@ export default function ScenarioOutlook({ scenarios }: ScenarioOutlookProps) {
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-xs font-semibold t-1 truncate">{s.name}</div>
+                  <div className="text-xs font-semibold t-1">{s.name}</div>
+                  <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${s.badgeColor}`}>
+                    {s.difficulty}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between gap-2 mt-0.5">
+                  <div className="text-[10px] t-3">{timeStr}</div>
                   <div className={`text-xs font-bold flex-shrink-0 ${s.color}`}>{returnStr}</div>
                 </div>
-                <div className="text-[10px] t-3">Recovery Time: {timeStr}</div>
               </div>
-              <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${s.badgeColor}`}>
-                {s.difficulty}
-              </span>
             </div>
           );
         })}
