@@ -12,7 +12,7 @@ import {
 
 const nav = [
   { href: '/dashboard',            label: 'Dashboard',       icon: LayoutDashboard },
-  { href: '/recovery-calculator',  label: 'Recovery Calc',   icon: Calculator },
+  { href: '/recovery-calculator',  label: 'Recovery Panel',  icon: Calculator },
   { href: '/dca-planner',          label: 'DCA Planner',     icon: CalendarDays },
   { href: '/exit-guardian',        label: 'Exit Guardian',   icon: ShieldOff },
   { href: '/settings',             label: 'Settings',        icon: Settings },
