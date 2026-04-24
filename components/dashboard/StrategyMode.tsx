@@ -53,10 +53,10 @@ export default function StrategyMode({ strategy, riskMode, onStrategyChange, onR
         <div className="grid grid-cols-3 gap-1">
           {riskModes.map(({ mode, label }) => (
             <button key={mode} onClick={() => onRiskModeChange(mode)}
-              className={`py-1.5 rounded-lg text-[10px] font-medium transition-all duration-150 ${
+              className={`py-1.5 rounded-lg text-[10px] font-semibold transition-all duration-150 ${
                 riskMode === mode
-                  ? 'bg-orange-500/20 border border-orange-500/40 text-orange-500'
-                  : 'border t-3 hover:t-2'
+                  ? 'bg-orange-500 text-white border border-orange-500 shadow-sm'
+                  : 'border t-2 hover:border-orange-400/50'
               }`}
               style={riskMode !== mode ? { borderColor: 'var(--border)', background: 'var(--surface-deep)' } : undefined}>
               {label}

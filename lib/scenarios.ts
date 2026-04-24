@@ -28,8 +28,8 @@ export function generateScenarios(assets: CryptoAsset[]): ScenarioOutcome[] {
       recoveryTimeLow: '3',
       recoveryTimeHigh: '6',
       difficulty: bullRecoverable ? 'Good' : 'Moderate',
-      color: 'text-emerald-400',
-      badgeColor: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
+      color: 'text-emerald-600',
+      badgeColor: 'bg-emerald-500/20 text-emerald-600 border border-emerald-500/30',
       icon: 'TrendingUp',
     },
     {
@@ -40,8 +40,8 @@ export function generateScenarios(assets: CryptoAsset[]): ScenarioOutcome[] {
       recoveryTimeLow: '6',
       recoveryTimeHigh: '12',
       difficulty: 'Moderate',
-      color: 'text-yellow-400',
-      badgeColor: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30',
+      color: 'text-amber-600',
+      badgeColor: 'bg-yellow-500/20 text-amber-600 border border-yellow-500/30',
       icon: 'Minus',
     },
     {
@@ -52,8 +52,8 @@ export function generateScenarios(assets: CryptoAsset[]): ScenarioOutcome[] {
       recoveryTimeLow: '12',
       recoveryTimeHigh: '',
       difficulty: 'Challenging',
-      color: 'text-red-400',
-      badgeColor: 'bg-red-500/20 text-red-400 border border-red-500/30',
+      color: 'text-red-600',
+      badgeColor: 'bg-red-500/20 text-red-600 border border-red-500/30',
       icon: 'TrendingDown',
     },
   ];

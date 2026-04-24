@@ -26,9 +26,9 @@ export default function BehavioralGuard({ warnings }: BehavioralGuardProps) {
         <div className="flex flex-wrap items-center gap-2 md:gap-4">
           {warnings.map((w) => {
             const Icon = icons[w.icon as keyof typeof icons] ?? AlertTriangle;
-            const bgColor = w.level === 'High' ? 'bg-red-500/10 border-red-500/20'
-              : w.level === 'Moderate' ? 'bg-yellow-500/10 border-yellow-500/20'
-              : 'bg-emerald-500/10 border-emerald-500/20';
+            const bgColor = w.level === 'High' ? 'bg-red-500/15 border-red-500/30'
+              : w.level === 'Moderate' ? 'bg-amber-500/15 border-amber-500/30'
+              : 'bg-emerald-500/15 border-emerald-500/30';
             return (
               <div key={w.type} className={`flex items-center gap-2 px-3 py-2 rounded-xl border ${bgColor}`}>
                 <Icon size={13} className={w.color} />

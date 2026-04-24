@@ -24,9 +24,9 @@ export function analyzeBehavior(assets: CryptoAsset[], tradeCount24h = 0, avgCou
   else if (drawdown > 10) overAvgLevel = 'Moderate';
 
   const colorMap = {
-    Low: 'text-emerald-400',
-    Moderate: 'text-yellow-400',
-    High: 'text-red-400',
+    Low: 'text-emerald-600',
+    Moderate: 'text-amber-600',
+    High: 'text-red-600',
   };
 
   return [
