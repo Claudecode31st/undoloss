@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 import {
   LayoutDashboard, Briefcase, Target, Shield,
   MoreHorizontal, FileText, TrendingUp, Clock,
-  Settings, HelpCircle, Sun, Moon, X
+  Settings, HelpCircle, Sun, Moon, X, Calculator
 } from 'lucide-react';
 
 const primary = [
@@ -17,11 +17,12 @@ const primary = [
 ];
 
 const more = [
-  { href: '/recovery-plan',      label: 'Recovery Plan',      icon: FileText },
-  { href: '/scenario-simulator', label: 'Scenario Simulator', icon: TrendingUp },
-  { href: '/history',            label: 'History',            icon: Clock },
-  { href: '/settings',           label: 'Settings',           icon: Settings },
-  { href: '/help',               label: 'Help',               icon: HelpCircle },
+  { href: '/recovery-plan',        label: 'Recovery Plan',  icon: FileText },
+  { href: '/recovery-calculator',  label: 'Recovery Calc',  icon: Calculator },
+  { href: '/scenario-simulator',   label: 'Scenario Sim',   icon: TrendingUp },
+  { href: '/history',              label: 'History',        icon: Clock },
+  { href: '/settings',             label: 'Settings',       icon: Settings },
+  { href: '/help',                 label: 'Help',           icon: HelpCircle },
 ];
 
 export default function MobileNav() {

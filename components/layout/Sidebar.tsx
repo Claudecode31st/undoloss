@@ -7,7 +7,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Briefcase, Target, Shield, FileText,
-  TrendingUp, Clock, Settings, HelpCircle, Heart, Sun, Moon
+  TrendingUp, Clock, Settings, HelpCircle, Heart, Sun, Moon, Calculator
 } from 'lucide-react';
 
 const nav = [
@@ -16,7 +16,8 @@ const nav = [
   { href: '/strategies', label: 'Strategies', icon: Target },
   { href: '/risk-dashboard', label: 'Risk Dashboard', icon: Shield },
   { href: '/recovery-plan', label: 'Recovery Plan', icon: FileText },
-  { href: '/scenario-simulator', label: 'Scenario Simulator', icon: TrendingUp },
+  { href: '/recovery-calculator', label: 'Recovery Calc', icon: Calculator },
+  { href: '/scenario-simulator', label: 'Scenario Sim', icon: TrendingUp },
   { href: '/history', label: 'History', icon: Clock },
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: '/help', label: 'Help', icon: HelpCircle },
