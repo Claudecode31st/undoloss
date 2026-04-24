@@ -62,23 +62,31 @@ export default function StrategiesPage() {
             <div className="space-y-2">
               {portfolio.assets.map((asset) => {
                 const move = calcBreakevenMove(asset);
+                const pnlPct = ((asset.currentPrice - asset.entryPrice) / asset.entryPrice) * 100;
+                const isProfit = move <= 0;
                 return (
                   <div key={asset.id} className="flex items-center gap-3 p-3 glass-dark rounded-xl">
-                    <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
+                    <div className="w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0"
                       style={{ backgroundColor: asset.color + '33', border: `1px solid ${asset.color}55`, color: asset.color }}>
                       {asset.symbol.slice(0, 2)}
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <span className="text-sm font-medium t-1">{asset.symbol}</span>
-                        <span className="text-sm font-semibold text-orange-500">Need +{Math.abs(move).toFixed(2)}%</span>
+                    <div className="flex-1 min-w-0">
+                      {/* Row 1: symbol + current P/L */}
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-sm font-semibold t-1">{asset.symbol}</span>
+                        <span className={`text-sm font-bold tabular-nums ${isProfit ? 'text-emerald-500' : 'text-red-500'}`}>
+                          {fmtPercent(pnlPct)}
+                        </span>
                       </div>
-                      <div className="text-xs t-3">
-                        Entry: {fmtCurrency(asset.entryPrice)} → Current: {fmtCurrency(asset.currentPrice)}
+                      {/* Row 2: need to recover + prices */}
+                      <div className="flex items-center justify-between gap-2 mt-0.5">
+                        <span className="text-[11px] font-semibold text-orange-500 whitespace-nowrap">
+                          {isProfit ? 'Already recovered' : `Need +${Math.abs(move).toFixed(2)}%`}
+                        </span>
+                        <span className="text-[10px] t-3 tabular-nums whitespace-nowrap">
+                          {fmtCurrency(asset.entryPrice)} → {fmtCurrency(asset.currentPrice)}
+                        </span>
                       </div>
-                    </div>
-                    <div className={`text-sm font-semibold ${move <= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {fmtPercent(((asset.currentPrice - asset.entryPrice) / asset.entryPrice) * 100)}
                     </div>
                   </div>
                 );
