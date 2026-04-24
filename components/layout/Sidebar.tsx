@@ -6,21 +6,21 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, Briefcase, Target, Shield, FileText,
-  TrendingUp, Clock, Settings, HelpCircle, Heart, Sun, Moon, Calculator
+  LayoutDashboard, Briefcase, Target, Shield,
+  Calculator, CalendarDays, ShieldOff,
+  Settings, HelpCircle, Heart, Sun, Moon
 } from 'lucide-react';
 
 const nav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/portfolio', label: 'Portfolio', icon: Briefcase },
-  { href: '/strategies', label: 'Strategies', icon: Target },
-  { href: '/risk-dashboard', label: 'Risk Dashboard', icon: Shield },
-  { href: '/recovery-plan', label: 'Recovery Plan', icon: FileText },
-  { href: '/recovery-calculator', label: 'Recovery Calc', icon: Calculator },
-  { href: '/scenario-simulator', label: 'Scenario Sim', icon: TrendingUp },
-  { href: '/history', label: 'History', icon: Clock },
-  { href: '/settings', label: 'Settings', icon: Settings },
-  { href: '/help', label: 'Help', icon: HelpCircle },
+  { href: '/dashboard',            label: 'Dashboard',         icon: LayoutDashboard },
+  { href: '/portfolio',            label: 'Portfolio',          icon: Briefcase },
+  { href: '/strategies',           label: 'Strategies',         icon: Target },
+  { href: '/risk-dashboard',       label: 'Risk',               icon: Shield },
+  { href: '/recovery-calculator',  label: 'Recovery Calc',      icon: Calculator },
+  { href: '/dca-planner',          label: 'DCA Planner',        icon: CalendarDays },
+  { href: '/exit-guardian',        label: 'Exit Guardian',      icon: ShieldOff },
+  { href: '/settings',             label: 'Settings',           icon: Settings },
+  { href: '/help',                 label: 'Help',               icon: HelpCircle },
 ];
 
 export default function Sidebar() {
