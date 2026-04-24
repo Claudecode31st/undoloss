@@ -37,7 +37,7 @@ export default function StrategyMode({ strategy, riskMode, onStrategyChange, onR
           const active = strategy === mode;
           return (
             <button key={mode} onClick={() => onStrategyChange(mode)}
-              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all duration-150 ${active ? 'nav-active' : 'hover:bg-black/5 dark:hover:bg-white/5'}`}>
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-left transition-all duration-150 ${active ? 'bg-orange-500/15 border border-orange-500/30' : 'border border-transparent hover:bg-black/5 dark:hover:bg-white/5'}`}>
               <Icon size={14} className={active ? 'text-orange-500' : 't-3'} />
               <div>
                 <div className="text-xs font-medium" style={{ color: active ? '#f97316' : 'var(--text-2)' }}>{name}</div>
