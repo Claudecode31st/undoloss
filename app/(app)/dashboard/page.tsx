@@ -5,6 +5,7 @@ import Header from '@/components/layout/Header';
 import StatsCards from '@/components/dashboard/StatsCards';
 import PortfolioTable from '@/components/dashboard/PortfolioTable';
 import PortfolioAllocation from '@/components/dashboard/PortfolioAllocation';
+import RecoveryPanel from '@/components/dashboard/RecoveryPanel';
 import AssetModal from '@/components/modals/AssetModal';
 import { CryptoAsset, Portfolio, Prefs } from '@/lib/types';
 import { loadPortfolio, savePortfolio, loadPrefs } from '@/lib/storage';
@@ -161,18 +162,20 @@ export default function Dashboard() {
           <div className="space-y-3">
             {portfolioTable}
             <PortfolioAllocation assets={portfolio.assets} />
+            <RecoveryPanel assets={portfolio.assets} />
           </div>
         </MobileSection>
       </div>
 
       {/* ── DESKTOP layout ── */}
-      <div className="hidden md:block mt-4">
+      <div className="hidden md:block mt-4 space-y-4">
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">{portfolioTable}</div>
           <div className="col-span-1">
             <PortfolioAllocation assets={portfolio.assets} />
           </div>
         </div>
+        <RecoveryPanel assets={portfolio.assets} />
       </div>
 
       <AssetModal
