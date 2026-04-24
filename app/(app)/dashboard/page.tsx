@@ -177,8 +177,10 @@ export default function Dashboard() {
             <PortfolioAllocation assets={portfolio.assets} />
           </div>
         </div>
-        <RecoveryPanel assets={portfolio.assets} />
-        <DCAPanel assets={portfolio.assets} />
+        <div className="grid grid-cols-2 gap-4 items-start">
+          <RecoveryPanel assets={portfolio.assets} />
+          <DCAPanel assets={portfolio.assets} />
+        </div>
       </div>
 
       <AssetModal
