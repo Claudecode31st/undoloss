@@ -37,12 +37,8 @@ export default function RiskDashboardPage() {
               <path d="M10 75 A 70 70 0 0 1 150 75" fill="none" stroke="var(--border-strong)" strokeWidth="12" strokeLinecap="round" />
               <path d="M10 75 A 70 70 0 0 1 150 75" fill="none" stroke={riskColor} strokeWidth="12" strokeLinecap="round"
                 strokeDasharray={`${(riskAngle / 180) * 220} 220`} style={{ transition: 'stroke-dasharray 0.8s ease' }} />
-              <g transform={`rotate(${riskAngle - 90}, 80, 75)`}>
-                <line x1="80" y1="75" x2="80" y2="22" stroke="var(--text-1)" strokeWidth="2.5" strokeLinecap="round" />
-                <circle cx="80" cy="75" r="4" style={{ fill: 'var(--text-1)' }} />
-              </g>
-              <text x="80" y="65" textAnchor="middle" style={{ fill: 'var(--text-1)', fontSize: '22px', fontWeight: 'bold' }}>{risk.score}</text>
-              <text x="80" y="74" textAnchor="middle" style={{ fill: 'var(--text-3)', fontSize: '8px' }}>/100</text>
+              <text x="80" y="68" textAnchor="middle" style={{ fill: 'var(--text-1)', fontSize: '22px', fontWeight: 'bold' }}>{risk.score}</text>
+              <text x="80" y="78" textAnchor="middle" style={{ fill: 'var(--text-3)', fontSize: '8px' }}>/100</text>
             </svg>
           </div>
           <div className="text-base font-bold mt-2" style={{ color: riskColor }}>{risk.level}</div>
