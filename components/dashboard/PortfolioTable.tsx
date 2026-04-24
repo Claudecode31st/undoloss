@@ -1,8 +1,8 @@
 'use client';
-import { Pencil, Trash2, Plus } from 'lucide-react';
+import { Pencil, Trash2, Plus, Wallet, AlertTriangle } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { CryptoAsset } from '@/lib/types';
-import { calcAssetPnL, fmtCurrency, fmtPercent, fmtNumber } from '@/lib/calculations';
+import { calcAssetPnL, calcMarginCallPrice, fmtCurrency, fmtPercent, fmtNumber } from '@/lib/calculations';
 
 interface PortfolioTableProps {
   assets: CryptoAsset[];
@@ -67,7 +67,21 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] t-3">{fmtCurrency(asset.currentPrice)}{asset.capitalLeft ? <span className="ml-1.5 text-blue-500">${asset.capitalLeft.toLocaleString()} left</span> : null}</div>
+                <div className="flex items-center gap-1.5 flex-wrap mt-0.5">
+                  <span className="text-[11px] t-3">{fmtCurrency(asset.currentPrice)}</span>
+                  {asset.capitalLeft ? (
+                    <span className="text-[9px] font-semibold px-1 py-0.5 rounded text-teal-600 dark:text-teal-400"
+                      style={{ background: 'rgba(20,184,166,0.12)', border: '1px solid rgba(20,184,166,0.25)' }}>
+                      💰 {fmtCurrency(asset.capitalLeft, 0)} left
+                    </span>
+                  ) : null}
+                  {calcMarginCallPrice(asset) ? (
+                    <span className="text-[9px] font-semibold px-1 py-0.5 rounded text-red-500"
+                      style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                      ⚡ Liq {fmtCurrency(calcMarginCallPrice(asset)!)}
+                    </span>
+                  ) : null}
+                </div>
               </div>
 
               {/* P/L */}
@@ -142,17 +156,51 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1">
-                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
-                        (asset.direction ?? 'long') === 'long'
-                          ? 'bg-emerald-500/15 text-emerald-600'
-                          : 'bg-red-500/15 text-red-500'
-                      }`}>
-                        {(asset.direction ?? 'long').toUpperCase()}
-                        {asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
-                      </span>
-                      {asset.capitalLeft ? <span className="text-[10px] text-blue-500">${asset.capitalLeft.toLocaleString()} left</span> : null}
-                    </div>
+                    {(() => {
+                      const isLong = (asset.direction ?? 'long') === 'long';
+                      const liqPrice = calcMarginCallPrice(asset);
+                      const distToLiq = liqPrice && asset.currentPrice > 0
+                        ? ((liqPrice - asset.currentPrice) / asset.currentPrice) * 100
+                        : null;
+                      return (
+                        <div className="flex flex-col gap-1.5">
+                          {/* Direction + leverage badge */}
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
+                            isLong ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
+                          }`}>
+                            {(asset.direction ?? 'long').toUpperCase()}
+                            {asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
+                          </span>
+                          {/* Capital left */}
+                          {asset.capitalLeft ? (
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg w-fit"
+                              style={{ background: 'rgba(20,184,166,0.1)', border: '1px solid rgba(20,184,166,0.25)' }}>
+                              <Wallet size={9} className="text-teal-500 flex-shrink-0" />
+                              <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400">
+                                {fmtCurrency(asset.capitalLeft, 0)} left
+                              </span>
+                            </div>
+                          ) : null}
+                          {/* Liquidation price */}
+                          {liqPrice && (
+                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg w-fit"
+                              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
+                              <AlertTriangle size={9} className="text-red-500 flex-shrink-0" />
+                              <div>
+                                <span className="text-[10px] font-semibold text-red-500">
+                                  Liq {fmtCurrency(liqPrice)}
+                                </span>
+                                {distToLiq !== null && (
+                                  <span className="text-[9px] text-red-400 ml-1">
+                                    ({distToLiq > 0 ? '+' : ''}{distToLiq.toFixed(1)}%)
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-sm t-1">{fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)} {asset.symbol}</div>
