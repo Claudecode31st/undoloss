@@ -6,7 +6,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import {
   LayoutDashboard, Briefcase, Target, Shield, FileText,
-  TrendingUp, Clock, Settings, HelpCircle, Heart, Sun, Moon, X
+  TrendingUp, Clock, Settings, HelpCircle, Heart, Sun, Moon
 } from 'lucide-react';
 
 const nav = [
@@ -21,12 +21,7 @@ const nav = [
   { href: '/help', label: 'Help', icon: HelpCircle },
 ];
 
-interface SidebarProps {
-  mobileOpen?: boolean;
-  onMobileClose?: () => void;
-}
-
-export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
+export default function Sidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -35,11 +30,11 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
 
   const isDark = theme === 'dark';
 
-  const content = (
-    <aside className="h-full w-64 md:w-48 glass-dark flex flex-col border-r"
+  return (
+    <aside className="hidden md:flex fixed left-0 top-0 h-full w-48 glass-dark flex-col z-40 border-r"
       style={{ borderColor: 'var(--border)' }}>
       {/* Logo */}
-      <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: 'var(--border)' }}>
+      <div className="p-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
           <Image src="/logo.svg" alt="Undo Loss logo" width={32} height={32} className="flex-shrink-0 rounded-lg" priority />
           <div>
@@ -47,9 +42,6 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             <div className="text-[10px] leading-tight t-3">Recovery System</div>
           </div>
         </Link>
-        <button onClick={onMobileClose} className="md:hidden p-1 rounded-lg hover:bg-black/10 dark:hover:bg-white/10 t-2">
-          <X size={18} />
-        </button>
       </div>
 
       {/* Nav */}
@@ -60,8 +52,7 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             <Link
               key={href}
               href={href}
-              onClick={onMobileClose}
-              className={`flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm transition-all duration-150 ${
+              className={`flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm transition-all duration-150 ${
                 active ? 'nav-active font-medium' : 'hover:bg-black/5 dark:hover:bg-white/5'
               }`}
               style={{ color: active ? '#f97316' : 'var(--text-2)' }}
@@ -81,15 +72,11 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
             className="w-full flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/5"
             style={{ border: '1px solid var(--border)' }}
           >
-            <span className="text-xs t-2">
-              {isDark ? 'Dark Mode' : 'Light Mode'}
-            </span>
+            <span className="text-xs t-2">{isDark ? 'Dark Mode' : 'Light Mode'}</span>
             <div className="relative w-9 h-5 rounded-full transition-colors duration-300"
               style={{ background: isDark ? '#f97316' : '#d1d5db' }}>
               <div className={`absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-transform duration-300 flex items-center justify-center ${isDark ? 'translate-x-4' : 'translate-x-0.5'}`}>
-                {isDark
-                  ? <Moon size={9} className="text-orange-500" />
-                  : <Sun size={9} className="text-yellow-500" />}
+                {isDark ? <Moon size={9} className="text-orange-500" /> : <Sun size={9} className="text-yellow-500" />}
               </div>
             </div>
           </button>
@@ -103,25 +90,5 @@ export default function Sidebar({ mobileOpen = false, onMobileClose }: SidebarPr
         </button>
       </div>
     </aside>
-  );
-
-  return (
-    <>
-      {/* Desktop sidebar */}
-      <div className="hidden md:block fixed left-0 top-0 h-full w-48 z-40">
-        {content}
-      </div>
-
-      {/* Mobile drawer */}
-      <div className={`md:hidden fixed inset-0 z-50 transition-all duration-300 ${mobileOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}>
-        <div
-          className={`absolute inset-0 bg-black/50 transition-opacity duration-300 ${mobileOpen ? 'opacity-100' : 'opacity-0'}`}
-          onClick={onMobileClose}
-        />
-        <div className={`absolute left-0 top-0 h-full transition-transform duration-300 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          {content}
-        </div>
-      </div>
-    </>
   );
 }
