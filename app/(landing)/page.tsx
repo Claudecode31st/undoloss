@@ -3,7 +3,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useState, useEffect } from 'react';
 import {
-  ArrowRight, TrendingUp, Shield, Target, BarChart3, Brain, Zap,
+  ArrowRight, Undo2, TrendingUp, Shield, Target, BarChart3, Brain, Zap,
   CheckCircle, ChevronDown, ArrowUpRight,
   RotateCcw, DollarSign, AlertTriangle, TrendingDown, Minus,
   Lock, RefreshCw, Cpu
@@ -96,7 +96,7 @@ export default function LandingPage() {
       <nav className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-black/80 backdrop-blur-xl border-b border-zinc-800/60' : ''}`}>
         <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <Image src="/logo.svg" alt="Undo Loss" width={32} height={32} className="rounded-lg" />
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center shadow-sm"><Undo2 size={15} className="text-white" strokeWidth={2.5} /></div>
             <span className="font-bold text-white text-base">Undo Loss</span>
           </Link>
           <div className="hidden md:flex items-center gap-6 text-sm text-zinc-400">
@@ -389,7 +389,7 @@ export default function LandingPage() {
       <footer className="border-t border-zinc-800/50 py-10 px-6">
         <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
           <div className="flex items-center gap-2.5">
-            <Image src="/logo.svg" alt="Undo Loss" width={28} height={28} className="rounded-lg opacity-80" />
+            <div className="w-7 h-7 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center opacity-80"><Undo2 size={13} className="text-white" strokeWidth={2.5} /></div>
             <span className="text-sm font-bold text-zinc-400">Undo Loss</span>
           </div>
           <div className="flex items-center gap-6 text-xs text-zinc-600">

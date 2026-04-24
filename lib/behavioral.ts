@@ -23,32 +23,31 @@ export function analyzeBehavior(assets: CryptoAsset[], tradeCount24h = 0, avgCou
   else if (drawdown > 15) overAvgLevel = 'High';
   else if (drawdown > 10) overAvgLevel = 'Moderate';
 
-  const colorMap = {
-    Low: 'text-emerald-600',
-    Moderate: 'text-amber-600',
-    High: 'text-red-600',
-  };
+  // Each warning type has its own color family so they're always visually distinct
+  const panicColors =      { Low: 'text-emerald-600', Moderate: 'text-amber-600',  High: 'text-red-600'    };
+  const overtradingColors = { Low: 'text-sky-600',     Moderate: 'text-blue-600',   High: 'text-blue-700'   };
+  const overAvgColors =     { Low: 'text-violet-500',  Moderate: 'text-violet-600', High: 'text-violet-700' };
 
   return [
     {
       type: 'panic-selling',
       name: 'Panic Selling Risk',
       level: panicLevel,
-      color: colorMap[panicLevel],
+      color: panicColors[panicLevel],
       icon: 'AlertTriangle',
     },
     {
       type: 'overtrading',
       name: 'Overtrading Risk',
       level: overtradingLevel,
-      color: colorMap[overtradingLevel],
+      color: overtradingColors[overtradingLevel],
       icon: 'Zap',
     },
     {
       type: 'over-averaging',
       name: 'Over-Averaging Risk',
       level: overAvgLevel,
-      color: colorMap[overAvgLevel],
+      color: overAvgColors[overAvgLevel],
       icon: 'Target',
     },
   ];

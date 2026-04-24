@@ -1,6 +1,7 @@
 'use client';
 import Link from 'next/link';
-import Image from 'next/image';
+import { Undo2 } from 'lucide-react';
+
 import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
@@ -36,7 +37,9 @@ export default function Sidebar() {
       {/* Logo */}
       <div className="p-4 border-b" style={{ borderColor: 'var(--border)' }}>
         <Link href="/" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-          <Image src="/logo.svg" alt="Undo Loss logo" width={32} height={32} className="flex-shrink-0 rounded-lg" priority />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center flex-shrink-0 shadow-sm">
+          <Undo2 size={15} className="text-white" strokeWidth={2.5} />
+        </div>
           <div>
             <div className="text-sm font-bold leading-tight t-1">Undo Loss</div>
             <div className="text-[10px] leading-tight t-3">Recovery System</div>
