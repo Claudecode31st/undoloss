@@ -11,8 +11,8 @@
   --border:        rgba(0, 0, 0, 0.08);
   --border-strong: rgba(0, 0, 0, 0.13);
   --text-1:        #09090b;
-  --text-2:        #52525b;
-  --text-3:        #a1a1aa;
+  --text-2:        #27272a;
+  --text-3:        #52525b;
   --shadow:        0 1px 3px rgba(0,0,0,0.07), 0 1px 2px rgba(0,0,0,0.04);
   --input-bg:      rgba(255, 255, 255, 0.9);
   --input-border:  rgba(0, 0, 0, 0.12);
@@ -25,9 +25,9 @@
   --surface-deep:  rgba(9, 9, 11, 0.7);
   --border:        rgba(63, 63, 70, 0.5);
   --border-strong: rgba(63, 63, 70, 0.8);
-  --text-1:        #fafafa;
-  --text-2:        #a1a1aa;
-  --text-3:        #52525b;
+  --text-1:        #ffffff;
+  --text-2:        #e4e4e7;
+  --text-3:        #a1a1aa;
   --shadow:        none;
   --input-bg:      rgba(39, 39, 42, 0.5);
   --input-border:  rgba(63, 63, 70, 0.6);
