@@ -1,6 +1,5 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { CalendarDays, ChevronDown } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
 import { usePortfolioRefresh } from '@/lib/usePortfolioRefresh';
@@ -12,24 +11,11 @@ export default function DCAPlanner() {
   const [months, setMonths] = useState(6);
   const [distribution, setDistribution] = useState<'equal' | 'drawdown'>('drawdown');
 
-  if (!portfolio) return <div className="t-3 p-8">Loading…</div>;
-  if (portfolio.assets.length === 0) {
-    return (
-      <>
-        <Header title="DCA Planner" subtitle="Build your buy schedule" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
-        <GlassCard className="p-8 text-center"><p className="t-3 text-sm">Add assets to your portfolio first.</p></GlassCard>
-      </>
-    );
-  }
+  const assets = portfolio?.assets ?? [];
 
-  const assets = portfolio.assets;
-  const stats = calcPortfolioStats(assets);
-  const totalInvested = stats.totalInvested;
-  const totalValue = stats.totalValue;
-  const holdBreakevenReq = totalValue > 0 ? (totalInvested / totalValue - 1) * 100 : 0;
-
-  /* ── Weights ─────────────────────────────────────────────────── */
+  /* ── Weights — must be before any return ────────────────────── */
   const weights = useMemo(() => {
+    if (assets.length === 0) return {};
     if (distribution === 'equal') {
       return Object.fromEntries(assets.map((a) => [a.id, 1 / assets.length]));
     }
@@ -42,10 +28,10 @@ export default function DCAPlanner() {
     return Object.fromEntries(losses.map((d) => [d.id, d.loss / total]));
   }, [assets, distribution]);
 
-  /* ── Per-asset monthly schedule ─────────────────────────────── */
+  /* ── Per-asset schedule — must be before any return ─────────── */
   const schedule = useMemo(() =>
     assets.map((asset) => {
-      const budget = monthlyBudget * (weights[asset.id] ?? 1 / assets.length);
+      const budget = monthlyBudget * (weights[asset.id] ?? 1 / Math.max(assets.length, 1));
       let cumTokens = asset.amount;
       let cumCost = asset.entryPrice * asset.amount;
 
@@ -57,18 +43,34 @@ export default function DCAPlanner() {
         const gainNeeded = asset.currentPrice > 0 ? Math.max(0, (newAvg / asset.currentPrice - 1) * 100) : 0;
         return { month: i + 1, budget, newTokens, cumTokens, cumCost, newAvg, gainNeeded };
       });
+
       const last = rows[rows.length - 1];
       const gainBefore = asset.currentPrice > 0 ? Math.max(0, (asset.entryPrice / asset.currentPrice - 1) * 100) : 0;
-      const improvement = gainBefore - last.gainNeeded;
-      return { asset, rows, gainBefore, gainAfter: last.gainNeeded, improvement, totalDeployed: budget * months };
-    }), [assets, monthlyBudget, months, weights]);
+      const improvement = gainBefore - (last?.gainNeeded ?? gainBefore);
+      return { asset, rows, gainBefore, gainAfter: last?.gainNeeded ?? 0, improvement, totalDeployed: budget * months };
+    }),
+  [assets, monthlyBudget, months, weights]);
 
-  /* ── Portfolio summary ───────────────────────────────────────── */
+  /* ── Portfolio summary — must be before any return ──────────── */
+  const stats = useMemo(() => calcPortfolioStats(assets), [assets]);
+
   const totalDeployed = monthlyBudget * months;
-  const newTotalInvested = totalInvested + totalDeployed;
-  const newTotalValue = totalValue + totalDeployed; // buying at current price
+  const holdBreakevenReq = stats.totalValue > 0 ? (stats.totalInvested / stats.totalValue - 1) * 100 : 0;
+  const newTotalInvested = stats.totalInvested + totalDeployed;
+  const newTotalValue = stats.totalValue + totalDeployed;
   const newBreakevenReq = newTotalValue > 0 ? Math.max(0, (newTotalInvested / newTotalValue - 1) * 100) : 0;
-  const improvement = holdBreakevenReq - newBreakevenReq;
+  const summaryImprovement = holdBreakevenReq - newBreakevenReq;
+
+  /* ── Early returns after all hooks ─────────────────────────── */
+  if (!portfolio) return <div className="t-3 p-8">Loading…</div>;
+  if (assets.length === 0) {
+    return (
+      <>
+        <Header title="DCA Planner" subtitle="Build your buy schedule" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
+        <GlassCard className="p-8 text-center"><p className="t-3 text-sm">Add assets to your portfolio first.</p></GlassCard>
+      </>
+    );
+  }
 
   return (
     <>
@@ -99,7 +101,7 @@ export default function DCAPlanner() {
             <div className="flex gap-2">
               {[3, 6, 12].map((m) => (
                 <button key={m} onClick={() => setMonths(m)}
-                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${months === m ? 'bg-orange-500 text-white' : 'text-t-2 hover:bg-black/5 dark:hover:bg-white/5'}`}
+                  className={`flex-1 py-2 rounded-xl text-xs font-semibold transition-all ${months === m ? 'bg-orange-500 text-white' : 't-2 hover:bg-black/5 dark:hover:bg-white/5'}`}
                   style={{ border: `1px solid ${months === m ? '#f97316' : 'var(--border)'}` }}>
                   {m}mo
                 </button>
@@ -120,13 +122,13 @@ export default function DCAPlanner() {
               ))}
             </div>
             <div className="text-[10px] t-3 mt-1.5">
-              {distribution === 'drawdown' ? '↑ More budget toward worst-hit assets' : '↑ Split evenly across all assets'}
+              {distribution === 'drawdown' ? 'More budget toward worst-hit assets' : 'Split evenly across all assets'}
             </div>
           </div>
         </div>
       </GlassCard>
 
-      {/* ── Portfolio summary impact ─────────────────────────────── */}
+      {/* ── Portfolio summary impact ──────────────────────────────── */}
       <GlassCard className="p-5 mb-4" style={{ border: '1px solid rgba(249,115,22,0.2)' }}>
         <h2 className="text-sm font-semibold t-1 mb-3">Plan Impact Summary</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -141,14 +143,14 @@ export default function DCAPlanner() {
             <div className="text-[10px] t-3">hold only, no new capital</div>
           </div>
           <div className="rounded-xl p-3" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-            <div className="text-[10px] t-3 mb-1">After plan</div>
+            <div className="text-[10px] t-3 mb-1">After full plan</div>
             <div className="text-base font-bold text-emerald-500">+{newBreakevenReq.toFixed(1)}%</div>
             <div className="text-[10px] t-3">new portfolio breakeven</div>
           </div>
           <div className="rounded-xl p-3" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.25)' }}>
             <div className="text-[10px] t-3 mb-1">Recovery reduced by</div>
-            <div className="text-base font-bold text-emerald-500">−{improvement.toFixed(1)}pp</div>
-            <div className="text-[10px] text-emerald-500">{improvement > 0 ? 'real improvement' : 'no change'}</div>
+            <div className="text-base font-bold text-emerald-500">−{summaryImprovement.toFixed(1)}pp</div>
+            <div className="text-[10px] text-emerald-500">{summaryImprovement > 0 ? 'real improvement' : 'no change'}</div>
           </div>
         </div>
       </GlassCard>
@@ -172,20 +174,21 @@ export default function DCAPlanner() {
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-[10px] t-3">Breakeven need</div>
+                <div className="text-[10px] t-3">Breakeven after plan</div>
                 <div className="flex items-center gap-1.5 justify-end">
                   <span className="text-sm font-bold text-red-500">+{gainBefore.toFixed(1)}%</span>
                   <span className="text-xs t-3">→</span>
                   <span className="text-sm font-bold text-emerald-500">+{gainAfter.toFixed(1)}%</span>
                 </div>
-                {imp > 0 && <div className="text-[10px] text-emerald-500">−{imp.toFixed(1)}pp improvement</div>}
+                {imp > 0.1 && <div className="text-[10px] text-emerald-500">−{imp.toFixed(1)}pp improvement</div>}
               </div>
             </div>
 
-            {/* Mobile card rows */}
+            {/* Mobile rows */}
             <div className="md:hidden space-y-2">
               {rows.map((r) => (
-                <div key={r.month} className="flex items-center gap-3 px-3 py-2.5 rounded-xl" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+                <div key={r.month} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+                  style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
                   <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-xs font-bold t-3"
                     style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
                     M{r.month}
@@ -218,7 +221,7 @@ export default function DCAPlanner() {
                   {rows.map((r) => (
                     <tr key={r.month} style={{ borderBottom: '1px solid var(--border)' }}>
                       <td className="px-3 py-2.5 text-xs font-semibold t-2">Month {r.month}</td>
-                      <td className="px-3 py-2.5 text-xs t-1 font-medium text-orange-500">{fmtCurrency(r.budget, 0)}</td>
+                      <td className="px-3 py-2.5 text-xs font-medium text-orange-500">{fmtCurrency(r.budget, 0)}</td>
                       <td className="px-3 py-2.5 text-xs t-2">+{r.newTokens.toFixed(4)}</td>
                       <td className="px-3 py-2.5 text-xs t-2">{r.cumTokens.toFixed(4)}</td>
                       <td className="px-3 py-2.5 text-xs t-1 font-semibold">{fmtCurrency(r.newAvg)}</td>
@@ -232,7 +235,6 @@ export default function DCAPlanner() {
         ))}
       </div>
 
-      {/* Disclaimer */}
       <p className="text-[10px] t-3 text-center mt-4">
         Assumes buys at current live price each month. Actual prices will vary. This is a planning tool only.
       </p>
