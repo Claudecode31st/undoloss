@@ -14,8 +14,13 @@ interface StatsCardsProps {
 
 export default function StatsCards({ stats, risk, assets, assetCount, show24hChange = true }: StatsCardsProps) {
   const pnlPositive = stats.totalUnrealizedPnL >= 0;
+  // How much % gain needed on current value to reach breakeven (correct for recovery math)
   const breakevenMove = stats.totalValue > 0
     ? ((stats.breakevenValue - stats.totalValue) / stats.totalValue) * 100
+    : 0;
+  // ROI % using cost as denominator — matches the P/L card and table values
+  const roiPct = stats.totalInvested > 0
+    ? ((stats.totalValue - stats.totalInvested) / stats.totalInvested) * 100
     : 0;
 
   const riskColor = risk.score < 30 ? '#22c55e' : risk.score < 55 ? '#eab308' : risk.score < 75 ? '#f97316' : '#ef4444';
@@ -93,7 +98,7 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         <div className="text-xl font-bold t-1">{fmtCurrency(stats.breakevenValue)}</div>
         {breakevenMove <= 0 ? (
           <div className="text-xs text-emerald-500 mt-1 font-medium">
-            ✓ +{Math.abs(breakevenMove).toFixed(1)}% above cost
+            ✓ +{roiPct.toFixed(1)}% ROI · in profit
           </div>
         ) : (
           <div className="text-xs text-orange-500 mt-1">
