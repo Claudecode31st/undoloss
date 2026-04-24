@@ -69,28 +69,31 @@ export default function ScenarioSimulatorPage() {
         </GlassCard>
 
         <GlassCard className="p-5">
-          <h2 className="text-sm font-semibold t-1 mb-4">Market Scenarios</h2>
+          <h2 className="text-sm font-semibold t-1 mb-4">Scenario Outlook</h2>
           <div className="space-y-3">
             {scenarios.map((s) => {
               const Icon = icons[s.scenario];
               const simValue = stats.totalValue * (1 + (s.returnRangeLow + s.returnRangeHigh) / 2 / 100);
+              const returnStr = `${s.returnRangeLow >= 0 ? '+' : ''}${s.returnRangeLow}% to +${s.returnRangeHigh}%`;
+              const timeStr = `${s.recoveryTimeLow}${s.recoveryTimeHigh ? `–${s.recoveryTimeHigh}` : '+'} months`;
               return (
-                <div key={s.scenario} className="glass-dark rounded-xl p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex items-center gap-2">
-                      <Icon size={14} className={s.color} />
-                      <span className="text-sm font-semibold t-1">{s.name}</span>
+                <div key={s.scenario} className="flex items-center gap-3 p-3 glass-dark rounded-xl">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                    s.scenario === 'bull' ? 'bg-emerald-500/10 border border-emerald-500/20'
+                      : s.scenario === 'sideways' ? 'bg-yellow-500/10 border border-yellow-500/20'
+                      : 'bg-red-500/10 border border-red-500/20'
+                  }`}>
+                    <Icon size={14} className={s.color} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold t-1">{s.name}</span>
+                      <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border flex-shrink-0 ${s.badgeColor}`}>{s.difficulty}</span>
                     </div>
-                    <span className={`text-xs font-bold ${s.color}`}>
-                      {s.returnRangeLow >= 0 ? '+' : ''}{s.returnRangeLow}% to +{s.returnRangeHigh}%
-                    </span>
-                  </div>
-                  <div className="flex justify-between text-xs t-3">
-                    <span>Est. value: <span className="t-1 font-medium">{fmtCurrency(simValue)}</span></span>
-                    <span>Recovery: {s.recoveryTimeLow}{s.recoveryTimeHigh ? `-${s.recoveryTimeHigh}` : '+'} months</span>
-                  </div>
-                  <div className="mt-1.5">
-                    <span className={`text-[10px] px-2 py-0.5 rounded-full border ${s.badgeColor}`}>{s.difficulty}</span>
+                    <div className="flex items-center justify-between gap-2 mt-0.5">
+                      <span className="text-[10px] t-3">Est. {fmtCurrency(simValue)} · {timeStr}</span>
+                      <span className={`text-xs font-bold flex-shrink-0 ${s.color}`}>{returnStr}</span>
+                    </div>
                   </div>
                 </div>
               );
