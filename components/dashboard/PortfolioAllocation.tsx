@@ -13,7 +13,7 @@ export default function PortfolioAllocation({ assets }: PortfolioAllocationProps
 
   if (assets.length === 0) {
     return (
-      <GlassCard className="p-4 flex items-center justify-center min-h-[160px]">
+      <GlassCard className="p-4 flex items-center justify-center h-full min-h-[160px]">
         <p className="t-3 text-sm">Add assets to see breakdown</p>
       </GlassCard>
     );
@@ -33,7 +33,7 @@ export default function PortfolioAllocation({ assets }: PortfolioAllocationProps
   };
 
   return (
-    <GlassCard className="p-4">
+    <GlassCard className="p-4 h-full flex flex-col">
       <h2 className="text-sm font-semibold t-1 mb-3 flex items-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
         Portfolio Breakdown
@@ -67,60 +67,57 @@ export default function PortfolioAllocation({ assets }: PortfolioAllocationProps
         </div>
       </div>
 
-      {/* Per-asset compact rows */}
-      <div className="border-t pt-2.5 space-y-1.5" style={{ borderColor: 'var(--border)' }}>
-        <div className="text-[10px] t-3 uppercase tracking-wider font-medium mb-1.5">Breakeven &amp; Buy Zones</div>
-        {assets.map((asset) => {
-          const pnl = calcAssetPnL(asset);
-          const move = calcBreakevenMove(asset);
-          const isShort = asset.direction === 'short';
-          const inProfit = pnl.unrealizedPnL >= 0;
+      {/* Per-asset breakeven rows — fills remaining height */}
+      <div className="border-t pt-2.5 flex flex-col flex-1" style={{ borderColor: 'var(--border)' }}>
+        <div className="text-[10px] t-3 uppercase tracking-wider font-medium mb-1.5">Breakeven per Asset</div>
+        <div className="space-y-1.5 flex-1">
+          {assets.map((asset) => {
+            const pnl = calcAssetPnL(asset);
+            const move = calcBreakevenMove(asset);
+            const isShort = asset.direction === 'short';
+            const inProfit = pnl.unrealizedPnL >= 0;
+            // Progress bar: how close current price is to entry
+            const progress = asset.entryPrice > 0
+              ? Math.min(100, Math.max(0, (asset.currentPrice / asset.entryPrice) * 100))
+              : 0;
 
-          return (
-            <div key={asset.id} className="rounded-lg px-2.5 py-2 flex items-center gap-2 flex-wrap"
-              style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-
-              {/* Avatar + symbol */}
-              <div className="flex items-center gap-1.5 min-w-[70px]">
-                <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0"
-                  style={{ backgroundColor: asset.color + '33', border: `1px solid ${asset.color}55`, color: asset.color }}>
-                  {asset.symbol.slice(0, 2)}
-                </div>
-                <span className="text-xs font-semibold t-1">{asset.symbol}</span>
-                <span className={`text-[8px] font-bold px-1 py-0.5 rounded-full leading-none ${isShort ? 'bg-red-500/15 text-red-500' : 'bg-emerald-500/15 text-emerald-600'}`}>
-                  {isShort ? 'S' : 'L'}
-                </span>
-              </div>
-
-              {/* P&L */}
-              <div className={`text-xs font-bold tabular-nums min-w-[50px] ${inProfit ? 'text-emerald-500' : 'text-red-500'}`}>
-                {fmtPercent(pnl.unrealizedPnLPercent)}
-              </div>
-
-              {/* Breakeven */}
-              <div className={`text-[10px] font-semibold flex-1 ${inProfit ? 'text-emerald-500' : 'text-orange-500'}`}>
-                {inProfit ? '✓ Profit' : `${isShort ? '↓' : '↑'}${Math.abs(move).toFixed(1)}% to BE`}
-              </div>
-
-              {/* Buy zone chips (long only) */}
-              {!isShort && (
-                <div className="flex gap-1">
-                  {[
-                    { pct: '-10%', price: asset.currentPrice * 0.90, c: '#22c55e' },
-                    { pct: '-20%', price: asset.currentPrice * 0.80, c: '#f97316' },
-                    { pct: '-30%', price: asset.currentPrice * 0.70, c: '#ef4444' },
-                  ].map((z) => (
-                    <div key={z.pct} className="rounded px-1.5 py-0.5 text-center"
-                      style={{ background: z.c + '18', border: `1px solid ${z.c}35` }}>
-                      <div className="text-[8px] font-medium" style={{ color: z.c }}>{z.pct}</div>
-                      <div className="text-[9px] font-bold t-1">{fmtCurrency(z.price)}</div>
+            return (
+              <div key={asset.id} className="rounded-lg px-2.5 py-2"
+                style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+                <div className="flex items-center gap-2 mb-1.5">
+                  {/* Avatar + symbol */}
+                  <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                    <div className="w-5 h-5 rounded-full flex items-center justify-center text-[8px] font-bold flex-shrink-0"
+                      style={{ backgroundColor: asset.color + '33', border: `1px solid ${asset.color}55`, color: asset.color }}>
+                      {asset.symbol.slice(0, 2)}
                     </div>
-                  ))}
+                    <span className="text-xs font-semibold t-1">{asset.symbol}</span>
+                    <span className={`text-[8px] font-bold px-1 py-0.5 rounded-full leading-none ${isShort ? 'bg-red-500/15 text-red-500' : 'bg-emerald-500/15 text-emerald-600'}`}>
+                      {isShort ? 'S' : 'L'}
+                    </span>
+                  </div>
+                  {/* ROI % */}
+                  <span className={`text-xs font-bold tabular-nums ${inProfit ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {fmtPercent(pnl.unrealizedPnLPercent)}
+                  </span>
+                  {/* Breakeven need */}
+                  <span className={`text-[10px] font-semibold whitespace-nowrap ${inProfit ? 'text-emerald-500' : 'text-orange-500'}`}>
+                    {inProfit ? '✓ Profit' : `${isShort ? '↓' : '↑'}${Math.abs(move).toFixed(1)}% to BE`}
+                  </span>
                 </div>
-              )}
-            </div>
-          );
-        })}
+                {/* Progress bar */}
+                <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+                  <div className="h-full rounded-full transition-all"
+                    style={{ width: `${progress}%`, background: inProfit ? '#22c55e' : '#ef4444' }} />
+                </div>
+                <div className="flex justify-between text-[9px] t-3 mt-0.5">
+                  <span>Entry {fmtCurrency(asset.entryPrice)}</span>
+                  <span>Now {fmtCurrency(asset.currentPrice)}</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </GlassCard>
   );

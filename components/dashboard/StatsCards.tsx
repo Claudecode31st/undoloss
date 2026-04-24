@@ -49,7 +49,7 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         <div className={`p-2 rounded-lg w-fit mb-3 ${pnlPositive ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
           <Activity size={16} className={pnlPositive ? 'text-emerald-500' : 'text-red-500'} />
         </div>
-        <div className="text-[11px] t-3 mb-1">Unrealized P/L</div>
+        <div className="text-[11px] t-3 mb-1">Unrealized P/L (ROI)</div>
         <div className={`text-xl font-bold ${pnlPositive ? 'text-emerald-500' : 'text-red-500'}`}>
           {fmtCurrency(stats.totalUnrealizedPnL)}
         </div>
@@ -89,15 +89,15 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         <div className={`p-2 rounded-lg w-fit mb-3 ${breakevenMove <= 0 ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
           <Target size={16} className={breakevenMove <= 0 ? 'text-emerald-500' : 'text-orange-500'} />
         </div>
-        <div className="text-[11px] t-3 mb-1">Portfolio Breakeven</div>
+        <div className="text-[11px] t-3 mb-1">Breakeven Target</div>
         <div className="text-xl font-bold t-1">{fmtCurrency(stats.breakevenValue)}</div>
         {breakevenMove <= 0 ? (
           <div className="text-xs text-emerald-500 mt-1 font-medium">
-            ✓ In profit +{Math.abs(breakevenMove).toFixed(2)}%
+            ✓ +{Math.abs(breakevenMove).toFixed(1)}% above cost
           </div>
         ) : (
           <div className="text-xs text-orange-500 mt-1">
-            Need <span className="font-medium">+{breakevenMove.toFixed(2)}%</span> to recover
+            Need <span className="font-medium">+{breakevenMove.toFixed(1)}%</span> to recover
           </div>
         )}
       </GlassCard>

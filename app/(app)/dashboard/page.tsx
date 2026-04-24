@@ -171,9 +171,9 @@ export default function Dashboard() {
 
       {/* ── DESKTOP layout ── */}
       <div className="hidden md:block mt-4 space-y-4">
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-4 items-stretch">
           <div className="col-span-2">{portfolioTable}</div>
-          <div className="col-span-1">
+          <div className="col-span-1 flex flex-col">
             <PortfolioAllocation assets={portfolio.assets} />
           </div>
         </div>
