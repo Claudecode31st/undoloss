@@ -17,7 +17,7 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
   const totalPnLPct = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
 
   return (
-    <GlassCard className="overflow-hidden">
+    <GlassCard className="overflow-hidden h-full">
       {/* Card header */}
       <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--border)' }}>
         <h2 className="text-sm font-semibold t-1 flex items-center gap-2">
