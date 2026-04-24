@@ -19,6 +19,8 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
   const [amount, setAmount] = useState('');
   const [entryPrice, setEntryPrice] = useState('');
   const [currentPrice, setCurrentPrice] = useState('');
+  const [direction, setDirection] = useState<'long' | 'short'>('long');
+  const [capitalLeft, setCapitalLeft] = useState('');
   const [fetchingPrice, setFetchingPrice] = useState(false);
   const [query, setQuery] = useState('');
   const isEdit = !!asset;
@@ -28,9 +30,12 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
       setSymbol(asset.symbol); setName(asset.name); setCoinGeckoId(asset.coinGeckoId);
       setColor(asset.color); setAmount(String(asset.amount));
       setEntryPrice(String(asset.entryPrice)); setCurrentPrice(String(asset.currentPrice));
+      setDirection(asset.direction ?? 'long');
+      setCapitalLeft(asset.capitalLeft ? String(asset.capitalLeft) : '');
     } else {
       setSymbol(''); setName(''); setCoinGeckoId(''); setColor('#f97316');
       setAmount(''); setEntryPrice(''); setCurrentPrice('');
+      setDirection('long'); setCapitalLeft('');
     }
     setQuery('');
   }, [asset, open]);
@@ -55,7 +60,8 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
     const parsed = {
       id: asset?.id ?? generateId(), symbol: symbol.toUpperCase(), name, coinGeckoId,
       amount: parseFloat(amount) || 0, entryPrice: parseFloat(entryPrice) || 0,
-      currentPrice: parseFloat(currentPrice) || 0, color,
+      currentPrice: parseFloat(currentPrice) || 0, color, direction,
+      ...(capitalLeft ? { capitalLeft: parseFloat(capitalLeft) } : {}),
     };
     if (!parsed.symbol || parsed.amount <= 0 || parsed.entryPrice <= 0) return;
     onSave(parsed);
@@ -106,6 +112,26 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
           </div>
         )}
 
+        {/* Direction toggle */}
+        <div className="mb-4">
+          <label className="text-xs t-2 mb-1.5 block">Position Direction</label>
+          <div className="grid grid-cols-2 gap-2">
+            {(['long', 'short'] as const).map((d) => (
+              <button key={d} type="button" onClick={() => setDirection(d)}
+                className={`py-2 rounded-xl text-sm font-semibold transition-all ${
+                  direction === d
+                    ? d === 'long'
+                      ? 'bg-emerald-500/20 border border-emerald-500/40 text-emerald-500'
+                      : 'bg-red-500/20 border border-red-500/40 text-red-500'
+                    : 't-3 hover:t-2'
+                }`}
+                style={direction !== d ? { border: '1px solid var(--border)', background: 'var(--surface-deep)' } : undefined}>
+                {d === 'long' ? '↑ Long' : '↓ Short'}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
             <label className="text-xs t-2 mb-1.5 block">Amount</label>
@@ -125,6 +151,13 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
             </label>
             <input type="number" value={currentPrice} onChange={(e) => setCurrentPrice(e.target.value)}
               placeholder="0.00" className="glass-input w-full rounded-xl px-3 py-2 text-sm" />
+          </div>
+          <div className="col-span-2">
+            <label className="text-xs t-2 mb-1.5 block">
+              Capital Left to Deploy (USD) <span className="t-3 text-[10px]">(optional)</span>
+            </label>
+            <input type="number" value={capitalLeft} onChange={(e) => setCapitalLeft(e.target.value)}
+              placeholder="e.g. 500" className="glass-input w-full rounded-xl px-3 py-2 text-sm" />
           </div>
         </div>
 

@@ -1,5 +1,5 @@
 'use client';
-import { Portfolio, CryptoAsset } from './types';
+import { Portfolio, CryptoAsset, Prefs } from './types';
 
 const KEY = 'ccrs_portfolio';
 
@@ -64,4 +64,27 @@ export function importPortfolio(file: File): Promise<Portfolio> {
 
 export function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
+}
+
+const PREFS_KEY = 'ccrs_prefs';
+const DEFAULT_PREFS: Prefs = {
+  show24hChange: true,
+  showScenarioOutlook: true,
+  showConcentrationRisk: true,
+};
+
+export function loadPrefs(): Prefs {
+  if (typeof window === 'undefined') return DEFAULT_PREFS;
+  try {
+    const raw = localStorage.getItem(PREFS_KEY);
+    if (!raw) return DEFAULT_PREFS;
+    return { ...DEFAULT_PREFS, ...JSON.parse(raw) };
+  } catch {
+    return DEFAULT_PREFS;
+  }
+}
+
+export function savePrefs(prefs: Prefs): void {
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(PREFS_KEY, JSON.stringify(prefs)); } catch { /* ignore */ }
 }

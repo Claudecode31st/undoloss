@@ -52,15 +52,22 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
 
               {/* Name + price */}
               <div className="flex-1 min-w-0">
-                <div className="flex items-baseline gap-1.5">
+                <div className="flex items-center gap-1.5 flex-wrap">
                   <span className="text-sm font-semibold t-1">{asset.symbol}</span>
+                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${
+                    (asset.direction ?? 'long') === 'long'
+                      ? 'bg-emerald-500/15 text-emerald-600'
+                      : 'bg-red-500/15 text-red-500'
+                  }`}>
+                    {(asset.direction ?? 'long').toUpperCase()}
+                  </span>
                   {asset.change24h !== undefined && (
                     <span className={`text-[10px] font-medium ${asset.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                       {fmtPercent(asset.change24h)}
                     </span>
                   )}
                 </div>
-                <div className="text-[11px] t-3 truncate">{fmtCurrency(asset.currentPrice)}</div>
+                <div className="text-[11px] t-3">{fmtCurrency(asset.currentPrice)}{asset.capitalLeft ? <span className="ml-1.5 text-blue-500">${asset.capitalLeft.toLocaleString()} left</span> : null}</div>
               </div>
 
               {/* P/L */}
@@ -111,7 +118,7 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
         <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['Asset', 'Amount', 'Entry Price', 'Current Price', 'Unrealized P/L', 'P/L %', 'Actions'].map((h) => (
+              {['Asset', 'Direction', 'Amount', 'Entry Price', 'Current Price', 'Unrealized P/L', 'P/L %', 'Actions'].map((h) => (
                 <th key={h} className="text-left text-[11px] t-3 font-medium px-4 py-2.5">{h}</th>
               ))}
             </tr>
@@ -137,6 +144,18 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                   <td className="px-4 py-3">
                     <div className="text-sm t-1">{fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)} {asset.symbol}</div>
                     <div className="text-[11px] t-3">{fmtCurrency(pnl.costBasis)}</div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="flex flex-col gap-1">
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
+                        (asset.direction ?? 'long') === 'long'
+                          ? 'bg-emerald-500/15 text-emerald-600'
+                          : 'bg-red-500/15 text-red-500'
+                      }`}>
+                        {(asset.direction ?? 'long').toUpperCase()}
+                      </span>
+                      {asset.capitalLeft ? <span className="text-[10px] text-blue-500">${asset.capitalLeft.toLocaleString()} left</span> : null}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-sm t-1">{fmtCurrency(asset.entryPrice)}</td>
                   <td className="px-4 py-3">
@@ -172,7 +191,7 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
           {assets.length > 0 && (
             <tfoot>
               <tr style={{ borderTop: '1px solid var(--border-strong)' }}>
-                <td colSpan={4} className="px-4 py-3 text-xs t-3 font-medium">Total / Average</td>
+                <td colSpan={5} className="px-4 py-3 text-xs t-3 font-medium">Total</td>
                 <td className={`px-4 py-3 text-sm font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{fmtCurrency(totalPnL)}</td>
                 <td className={`px-4 py-3 text-sm font-bold ${totalPnLPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{fmtPercent(totalPnLPct)}</td>
                 <td />

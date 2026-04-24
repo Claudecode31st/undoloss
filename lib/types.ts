@@ -11,6 +11,14 @@ export interface CryptoAsset {
   currentPrice: number;
   color: string;
   change24h?: number;
+  direction?: 'long' | 'short';
+  capitalLeft?: number;
+}
+
+export interface Prefs {
+  show24hChange: boolean;
+  showScenarioOutlook: boolean;
+  showConcentrationRisk: boolean;
 }
 
 export interface Portfolio {

@@ -7,9 +7,11 @@ import { fmtCurrency, fmtPercent } from '@/lib/calculations';
 interface StatsCardsProps {
   stats: PortfolioStats;
   risk: RiskScore;
+  assetCount: number;
+  show24hChange?: boolean;
 }
 
-export default function StatsCards({ stats, risk }: StatsCardsProps) {
+export default function StatsCards({ stats, risk, assetCount, show24hChange = true }: StatsCardsProps) {
   const pnlPositive = stats.totalUnrealizedPnL >= 0;
   const breakevenMove = stats.totalValue > 0
     ? ((stats.breakevenValue - stats.totalValue) / stats.totalValue) * 100
@@ -26,9 +28,11 @@ export default function StatsCards({ stats, risk }: StatsCardsProps) {
         </div>
         <div className="text-[11px] t-3 mb-1">Total Portfolio Value</div>
         <div className="text-xl font-bold t-1">{fmtCurrency(stats.totalValue)}</div>
-        <div className="text-xs text-emerald-500 mt-1">
-          24h Change <span className="font-medium">{fmtPercent(stats.change24h)}</span>
-        </div>
+        {show24hChange && (
+          <div className={`text-xs mt-1 ${stats.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+            24h <span className="font-medium">{stats.change24h >= 0 ? '+' : ''}{fmtPercent(stats.change24h, false)}</span>
+          </div>
+        )}
       </GlassCard>
 
       <GlassCard className="p-4" hover glow={pnlPositive ? 'green' : 'red'}>
@@ -51,7 +55,7 @@ export default function StatsCards({ stats, risk }: StatsCardsProps) {
         <div className="text-[11px] t-3 mb-1">Total Invested</div>
         <div className="text-xl font-bold t-1">{fmtCurrency(stats.totalInvested)}</div>
         <div className="text-xs t-3 mt-1">
-          Avg. Entry Price <span className="t-2 font-medium">{fmtCurrency(stats.avgEntryPrice)}</span>
+          Across <span className="t-2 font-medium">{assetCount} position{assetCount !== 1 ? 's' : ''}</span>
         </div>
       </GlassCard>
 
