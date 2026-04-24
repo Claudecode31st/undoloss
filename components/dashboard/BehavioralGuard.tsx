@@ -12,7 +12,7 @@ interface BehavioralGuardProps {
 export default function BehavioralGuard({ warnings }: BehavioralGuardProps) {
   return (
     <GlassCard className="p-4">
-      <div className="flex items-center gap-6">
+      <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-6">
         <div className="flex items-center gap-2 flex-shrink-0">
           <div className="p-2 rounded-lg bg-pink-500/10 border border-pink-500/20">
             <Heart size={14} className="text-pink-500" />
@@ -23,7 +23,7 @@ export default function BehavioralGuard({ warnings }: BehavioralGuardProps) {
           </div>
         </div>
 
-        <div className="flex-1 flex items-center gap-4">
+        <div className="flex flex-wrap items-center gap-2 md:gap-4">
           {warnings.map((w) => {
             const Icon = icons[w.icon as keyof typeof icons] ?? AlertTriangle;
             const bgColor = w.level === 'High' ? 'bg-red-500/10 border-red-500/20'
@@ -41,7 +41,7 @@ export default function BehavioralGuard({ warnings }: BehavioralGuardProps) {
           })}
         </div>
 
-        <div className="text-[10px] t-3 text-right flex-shrink-0">
+        <div className="text-[10px] t-3 md:text-right flex-shrink-0 hidden md:block">
           Stay patient. Stick to the plan.<br />
           <span className="t-3">Emotions are the biggest risk.</span>
         </div>

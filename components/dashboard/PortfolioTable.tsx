@@ -18,6 +18,7 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
 
   return (
     <GlassCard className="overflow-hidden">
+      {/* Card header */}
       <div className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--border)' }}>
         <h2 className="text-sm font-semibold t-1 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
@@ -32,7 +33,81 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
         </button>
       </div>
 
-      <div className="overflow-x-auto">
+      {/* ── Mobile card list ── */}
+      <div className="md:hidden">
+        {assets.length === 0 && (
+          <div className="text-center py-10 t-3 text-sm">No assets yet. Tap &quot;Add Asset&quot; to get started.</div>
+        )}
+        {assets.map((asset) => {
+          const pnl = calcAssetPnL(asset);
+          const pos = pnl.unrealizedPnL >= 0;
+          return (
+            <div key={asset.id} className="flex items-center gap-3 px-4 py-3 table-row-hover transition-colors"
+              style={{ borderBottom: '1px solid var(--border)' }}>
+              {/* Icon */}
+              <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold text-white flex-shrink-0"
+                style={{ background: `linear-gradient(135deg, ${asset.color}dd, ${asset.color}88)` }}>
+                {asset.symbol.slice(0, 1)}
+              </div>
+
+              {/* Name + price */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-sm font-semibold t-1">{asset.symbol}</span>
+                  {asset.change24h !== undefined && (
+                    <span className={`text-[10px] font-medium ${asset.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {fmtPercent(asset.change24h)}
+                    </span>
+                  )}
+                </div>
+                <div className="text-[11px] t-3 truncate">{fmtCurrency(asset.currentPrice)}</div>
+              </div>
+
+              {/* P/L */}
+              <div className="text-right flex-shrink-0">
+                <div className={`text-sm font-semibold ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {fmtCurrency(pnl.unrealizedPnL)}
+                </div>
+                <div className={`text-[11px] font-medium ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {fmtPercent(pnl.unrealizedPnLPercent)}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button onClick={() => onEdit(asset)}
+                  className="p-1.5 rounded-lg t-3 hover:text-orange-500 transition-colors"
+                  style={{ background: 'var(--surface-deep)' }}>
+                  <Pencil size={13} />
+                </button>
+                <button onClick={() => onDelete(asset.id)}
+                  className="p-1.5 rounded-lg t-3 hover:text-red-500 transition-colors"
+                  style={{ background: 'var(--surface-deep)' }}>
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Mobile total row */}
+        {assets.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3" style={{ borderTop: '1px solid var(--border-strong)' }}>
+            <span className="text-xs t-3 font-medium">Total P/L</span>
+            <div className="text-right">
+              <span className={`text-sm font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                {fmtCurrency(totalPnL)}
+              </span>
+              <span className={`text-xs font-bold ml-2 ${totalPnLPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                {fmtPercent(totalPnLPct)}
+              </span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── Desktop table ── */}
+      <div className="hidden md:block overflow-x-auto">
         <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
