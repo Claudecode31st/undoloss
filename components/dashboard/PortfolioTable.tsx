@@ -237,10 +237,18 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
           </tbody>
           {assets.length > 0 && (
             <tfoot>
-              <tr style={{ borderTop: '1px solid var(--border-strong)' }}>
-                <td colSpan={5} className="px-4 py-3 text-xs t-3 font-medium">Total</td>
-                <td className={`px-4 py-3 text-sm font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{fmtCurrency(totalPnL)}</td>
-                <td className={`px-4 py-3 text-sm font-bold ${totalPnLPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>{fmtPercent(totalPnLPct)}</td>
+              <tr style={{ borderTop: '2px solid var(--border-strong)', background: 'var(--surface-deep)' }}>
+                <td colSpan={5} className="px-4 py-3.5">
+                  <span className="text-xs font-bold t-2 uppercase tracking-wide">Total P&L</span>
+                </td>
+                <td className={`px-4 py-3.5 text-base font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {fmtCurrency(totalPnL)}
+                </td>
+                <td className={`px-4 py-3.5`}>
+                  <span className={`text-sm font-bold px-2 py-0.5 rounded-full ${totalPnLPct >= 0 ? 'bg-emerald-500/12 text-emerald-500' : 'bg-red-500/12 text-red-500'}`}>
+                    {fmtPercent(totalPnLPct)}
+                  </span>
+                </td>
                 <td />
               </tr>
             </tfoot>
