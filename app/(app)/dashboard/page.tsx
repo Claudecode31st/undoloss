@@ -1,17 +1,14 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronDown, BarChart2, Sliders, ShieldCheck } from 'lucide-react';
+import { ChevronDown, BarChart2 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import StatsCards from '@/components/dashboard/StatsCards';
 import PortfolioTable from '@/components/dashboard/PortfolioTable';
 import PortfolioAllocation from '@/components/dashboard/PortfolioAllocation';
-import StrategyMode from '@/components/dashboard/StrategyMode';
-import RecoveryPlanCard from '@/components/dashboard/RecoveryPlanCard';
 import AssetModal from '@/components/modals/AssetModal';
-import { CryptoAsset, Portfolio, StrategyMode as TStrategyMode, RiskMode, Prefs } from '@/lib/types';
+import { CryptoAsset, Portfolio, Prefs } from '@/lib/types';
 import { loadPortfolio, savePortfolio, loadPrefs } from '@/lib/storage';
 import { calcPortfolioStats, calcRiskScore, fmtCurrency } from '@/lib/calculations';
-import { generateStrategyResult } from '@/lib/strategies';
 import { fetchPrices } from '@/lib/coingecko';
 
 /* ── Mobile collapsible section ──────────────────────────────── */
@@ -64,16 +61,7 @@ export default function Dashboard() {
   const [editAsset, setEditAsset] = useState<CryptoAsset | null>(null);
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>(new Date().toISOString());
-
-  const KEYS = ['portfolio', 'strategy', 'recovery'] as const;
-  type Key = typeof KEYS[number];
-  const [open, setOpen] = useState<Record<Key, boolean>>({
-    portfolio: false, strategy: false, recovery: false,
-  });
-
-  const allOpen = KEYS.every((k) => open[k]);
-  const toggle = (k: Key) => setOpen((p) => ({ ...p, [k]: !p[k] }));
-  const setAll = (val: boolean) => setOpen(Object.fromEntries(KEYS.map((k) => [k, val])) as Record<Key, boolean>);
+  const [portfolioOpen, setPortfolioOpen] = useState(false);
 
   useEffect(() => {
     const p = loadPortfolio();
@@ -115,9 +103,8 @@ export default function Dashboard() {
     return <div className="flex items-center justify-center min-h-screen"><div className="t-3 text-sm">Loading...</div></div>;
   }
 
-  const stats          = calcPortfolioStats(portfolio.assets);
-  const risk           = calcRiskScore(portfolio.assets);
-  const strategyResult = generateStrategyResult(portfolio.assets, portfolio.strategy, portfolio.riskMode, portfolio.hedgeRatio);
+  const stats = calcPortfolioStats(portfolio.assets);
+  const risk  = calcRiskScore(portfolio.assets);
 
   const handleAddAsset    = () => { setEditAsset(null); setModalOpen(true); };
   const handleEditAsset   = (a: CryptoAsset) => { setEditAsset(a); setModalOpen(true); };
@@ -128,40 +115,19 @@ export default function Dashboard() {
     return { ...p, assets: exists ? p.assets.map((a) => a.id === asset.id ? asset : a) : [...p.assets, asset] };
   });
 
-  const previews: Record<Key, string> = {
-    portfolio: `${fmtCurrency(stats.totalValue)} · ${portfolio.assets.length} assets`,
-    strategy:  `${strategyResult.name} · ${portfolio.riskMode}`,
-    recovery:  `${strategyResult.hedgeStatus}`,
-  };
+  /* Recovery alert banner */
+  const deepLoss = stats.totalInvested > 0 && stats.totalUnrealizedPnL < 0 &&
+    Math.abs(stats.totalUnrealizedPnL / stats.totalInvested) >= 0.3;
 
-  // Shared components
   const portfolioTable = (
     <PortfolioTable assets={portfolio.assets} onAdd={handleAddAsset} onEdit={handleEditAsset} onDelete={handleDeleteAsset} />
   );
-  const strategyMode = (
-    <StrategyMode
-      strategy={portfolio.strategy}
-      riskMode={portfolio.riskMode}
-      onStrategyChange={(s: TStrategyMode) => setPortfolio((p) => p ? { ...p, strategy: s } : p)}
-      onRiskModeChange={(r: RiskMode) => setPortfolio((p) => p ? { ...p, riskMode: r } : p)}
-    />
-  );
-  const recoveryPlan = (
-    <RecoveryPlanCard
-      result={strategyResult}
-      hedgeRatio={portfolio.hedgeRatio}
-      onHedgeChange={(ratio) => setPortfolio((p) => p ? { ...p, hedgeRatio: ratio } : p)}
-    />
-  );
-  /* Recovery alert banner — shown when portfolio is deeply in the red */
-  const deepLoss = stats.totalInvested > 0 && stats.totalUnrealizedPnL < 0 &&
-    Math.abs(stats.totalUnrealizedPnL / stats.totalInvested) >= 0.3;
 
   return (
     <>
       <Header
         title="Dashboard"
-        subtitle="Portfolio overview and recovery system"
+        subtitle="Portfolio overview"
         lastUpdated={lastUpdated}
         onRefresh={refreshPrices}
         refreshing={refreshing}
@@ -175,36 +141,23 @@ export default function Dashboard() {
           <div className="flex-1 min-w-0">
             <span className="text-sm font-semibold text-red-500">Portfolio in deep drawdown</span>
             <span className="text-xs t-3 ml-2">
-              Down {Math.abs((stats.totalUnrealizedPnL / stats.totalInvested) * 100).toFixed(0)}% · Use the strategy and DCA tools below to plan your recovery
+              Down {Math.abs((stats.totalUnrealizedPnL / stats.totalInvested) * 100).toFixed(0)}% · Use Recovery Calc and DCA Planner to plan your path back
             </span>
           </div>
         </div>
       )}
 
-      {/* Stats — always visible */}
+      {/* Stats cards */}
       <StatsCards stats={stats} risk={risk} assets={portfolio.assets} assetCount={portfolio.assets.length} show24hChange={prefs.show24hChange} />
 
       {/* ── MOBILE layout ── */}
-      <div className="md:hidden space-y-2 mt-3">
-        <div className="flex justify-end mb-1">
-          <button
-            onClick={() => setAll(!allOpen)}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors text-orange-500 hover:text-orange-400"
-            style={{ border: '1px solid var(--border)', background: 'var(--surface-deep)' }}
-          >
-            {allOpen ? '↑ Collapse All' : '↓ Expand All'}
-          </button>
-        </div>
-
-        <MobileSection title="Recovery Plan" preview={previews.recovery} icon={ShieldCheck} iconColor="text-emerald-500" iconBg="bg-emerald-500/10" open={open.recovery} onToggle={() => toggle('recovery')}>
-          {recoveryPlan}
-        </MobileSection>
-
-        <MobileSection title="Strategies" preview={previews.strategy} icon={Sliders} iconColor="text-orange-500" iconBg="bg-orange-500/10" open={open.strategy} onToggle={() => toggle('strategy')}>
-          {strategyMode}
-        </MobileSection>
-
-        <MobileSection title="Portfolio" preview={previews.portfolio} icon={BarChart2} iconColor="text-blue-500" iconBg="bg-blue-500/10" open={open.portfolio} onToggle={() => toggle('portfolio')}>
+      <div className="md:hidden mt-3">
+        <MobileSection
+          title="Portfolio"
+          preview={`${fmtCurrency(stats.totalValue)} · ${portfolio.assets.length} assets`}
+          icon={BarChart2} iconColor="text-blue-500" iconBg="bg-blue-500/10"
+          open={portfolioOpen} onToggle={() => setPortfolioOpen((v) => !v)}
+        >
           <div className="space-y-3">
             {portfolioTable}
             <PortfolioAllocation assets={portfolio.assets} />
@@ -213,14 +166,7 @@ export default function Dashboard() {
       </div>
 
       {/* ── DESKTOP layout ── */}
-      <div className="hidden md:block">
-        {/* Row 1: strategy + recovery */}
-        <div className="mt-4 mb-4 grid grid-cols-2 gap-4">
-          <div>{strategyMode}</div>
-          <div>{recoveryPlan}</div>
-        </div>
-
-        {/* Row 2: portfolio table + breakdown */}
+      <div className="hidden md:block mt-4">
         <div className="grid grid-cols-3 gap-4">
           <div className="col-span-2">{portfolioTable}</div>
           <div className="col-span-1">
