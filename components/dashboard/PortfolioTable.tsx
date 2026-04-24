@@ -163,9 +163,9 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                         ? ((liqPrice - asset.currentPrice) / asset.currentPrice) * 100
                         : null;
                       return (
-                        <div className="flex flex-col gap-1.5">
+                        <div className="flex flex-wrap items-center gap-1">
                           {/* Direction + leverage badge */}
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             isLong ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
                           }`}>
                             {(asset.direction ?? 'long').toUpperCase()}
@@ -173,29 +173,27 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                           </span>
                           {/* Capital left */}
                           {asset.capitalLeft ? (
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg w-fit"
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
                               style={{ background: 'rgba(20,184,166,0.1)', border: '1px solid rgba(20,184,166,0.25)' }}>
-                              <Wallet size={9} className="text-teal-500 flex-shrink-0" />
+                              <Wallet size={8} className="text-teal-500 flex-shrink-0" />
                               <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400">
-                                {fmtCurrency(asset.capitalLeft, 0)} left
+                                {fmtCurrency(asset.capitalLeft, 0)}
                               </span>
                             </div>
                           ) : null}
                           {/* Liquidation price */}
                           {liqPrice && (
-                            <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-lg w-fit"
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
                               style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                              <AlertTriangle size={9} className="text-red-500 flex-shrink-0" />
-                              <div>
-                                <span className="text-[10px] font-semibold text-red-500">
-                                  Liq {fmtCurrency(liqPrice)}
+                              <AlertTriangle size={8} className="text-red-500 flex-shrink-0" />
+                              <span className="text-[10px] font-semibold text-red-500">
+                                {fmtCurrency(liqPrice)}
+                              </span>
+                              {distToLiq !== null && (
+                                <span className="text-[9px] text-red-400">
+                                  {distToLiq > 0 ? '+' : ''}{distToLiq.toFixed(0)}%
                                 </span>
-                                {distToLiq !== null && (
-                                  <span className="text-[9px] text-red-400 ml-1">
-                                    ({distToLiq > 0 ? '+' : ''}{distToLiq.toFixed(1)}%)
-                                  </span>
-                                )}
-                              </div>
+                              )}
                             </div>
                           )}
                         </div>
