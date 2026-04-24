@@ -36,7 +36,37 @@ export default function HistoryPage() {
           <h2 className="text-sm font-semibold t-1">7-Day Portfolio Snapshot</h2>
         </div>
 
-        <div className="overflow-x-auto">
+        {/* Mobile rows */}
+        <div className="md:hidden divide-y" style={{ borderTop: '1px solid var(--border)' }}>
+          {snapshots.map((snap, i) => (
+            <div key={i} className="flex items-center gap-3 py-3">
+              {/* Date */}
+              <div className="w-12 flex-shrink-0 text-center">
+                <div className="text-[11px] font-semibold t-2">{snap.date.split(' ')[0]}</div>
+                <div className="text-sm font-bold t-1">{snap.date.split(' ')[1]}</div>
+              </div>
+              {/* Values */}
+              <div className="flex-1 min-w-0">
+                <div className="text-sm font-bold t-1">{fmtCurrency(snap.value)}</div>
+                <div className={`text-[11px] font-medium ${snap.pnl >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {snap.pnl >= 0 ? '+' : ''}{fmtCurrency(snap.pnl)}
+                </div>
+              </div>
+              {/* P/L % + badge */}
+              <div className="text-right flex-shrink-0">
+                <div className={`text-sm font-bold ${snap.pnlPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {fmtPercent(snap.pnlPct)}
+                </div>
+                <span className={`text-[10px] px-2 py-0.5 rounded-full border ${snap.pnl >= 0 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-600' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+                  {snap.pnl >= 0 ? 'Gain' : 'Loss'}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>

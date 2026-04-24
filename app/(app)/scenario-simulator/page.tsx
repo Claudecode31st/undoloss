@@ -101,7 +101,45 @@ export default function ScenarioSimulatorPage() {
 
       <GlassCard className="p-5">
         <h2 className="text-sm font-semibold t-1 mb-4">Per-Asset Simulation ({priceChange >= 0 ? '+' : ''}{priceChange}% change)</h2>
-        <div className="overflow-x-auto">
+
+        {/* Mobile card list */}
+        <div className="md:hidden space-y-2">
+          {portfolio.assets.map((asset) => {
+            const simPrice = asset.currentPrice * (1 + priceChange / 100);
+            const curValue = asset.currentPrice * asset.amount;
+            const simValue = simPrice * asset.amount;
+            const pnl = simValue - asset.entryPrice * asset.amount;
+            const up = simPrice >= asset.currentPrice;
+            return (
+              <div key={asset.id} className="glass-dark rounded-xl p-3">
+                {/* Row 1: symbol + P/L */}
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0"
+                      style={{ backgroundColor: asset.color + '33', border: `1px solid ${asset.color}55`, color: asset.color }}>
+                      {asset.symbol.slice(0, 2)}
+                    </div>
+                    <span className="text-sm font-semibold t-1">{asset.symbol}</span>
+                  </div>
+                  <span className={`text-sm font-bold ${pnl >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {pnl >= 0 ? '+' : ''}{fmtCurrency(pnl)}
+                  </span>
+                </div>
+                {/* Row 2: prices */}
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="t-3">Price: <span className="t-2 font-medium">{fmtCurrency(asset.currentPrice)}</span> → <span className={`font-semibold ${up ? 'text-emerald-500' : 'text-red-500'}`}>{fmtCurrency(simPrice)}</span></span>
+                </div>
+                {/* Row 3: values */}
+                <div className="flex items-center justify-between text-[11px] mt-0.5">
+                  <span className="t-3">Value: <span className="t-2 font-medium">{fmtCurrency(curValue)}</span> → <span className="t-1 font-semibold">{fmtCurrency(simValue)}</span></span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
