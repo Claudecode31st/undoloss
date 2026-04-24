@@ -25,17 +25,17 @@ export default function PortfolioPage() {
     <>
       <Header title="Portfolio" subtitle="Manage your crypto positions" lastUpdated={portfolio.lastUpdated} />
 
-      <div className="grid grid-cols-4 gap-3 mb-5">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
         {[
           { label: 'Total Value', value: fmtCurrency(stats.totalValue), sub: 'Current market value', cls: 't-1' },
           { label: 'Total Invested', value: fmtCurrency(stats.totalInvested), sub: 'Cost basis', cls: 't-1' },
           { label: 'Unrealized P/L', value: fmtCurrency(stats.totalUnrealizedPnL), sub: fmtPercent(stats.totalUnrealizedPnLPercent), cls: stats.totalUnrealizedPnL >= 0 ? 'text-emerald-500' : 'text-red-500' },
           { label: 'Assets', value: String(portfolio.assets.length), sub: 'Positions tracked', cls: 't-1' },
         ].map((item) => (
-          <GlassCard key={item.label} className="p-4">
-            <div className="text-xs t-3 mb-1">{item.label}</div>
-            <div className={`text-xl font-bold ${item.cls}`}>{item.value}</div>
-            <div className="text-xs t-3 mt-0.5">{item.sub}</div>
+          <GlassCard key={item.label} className="p-3 md:p-4">
+            <div className="text-[11px] t-3 mb-1">{item.label}</div>
+            <div className={`text-base md:text-xl font-bold truncate ${item.cls}`}>{item.value}</div>
+            <div className="text-[11px] t-3 mt-0.5 leading-tight">{item.sub}</div>
           </GlassCard>
         ))}
       </div>
