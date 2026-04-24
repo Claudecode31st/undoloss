@@ -168,7 +168,7 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                           <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
                             isLong ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
                           }`}>
-                            {(asset.direction ?? 'long').toUpperCase()}
+                            {isLong ? 'L' : 'S'}
                             {asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
                           </span>
                           {/* Capital left */}
