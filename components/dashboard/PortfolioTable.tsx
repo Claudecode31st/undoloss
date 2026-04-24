@@ -155,25 +155,26 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-4 py-3 whitespace-nowrap">
                     {(() => {
                       const isLong = (asset.direction ?? 'long') === 'long';
                       const liqPrice = calcMarginCallPrice(asset);
                       const distToLiq = liqPrice && asset.currentPrice > 0
                         ? ((liqPrice - asset.currentPrice) / asset.currentPrice) * 100
                         : null;
+                      // Compact price: $25.9K instead of $25,923.64
+                      const fmtK = (v: number) => v >= 1000 ? `$${(v / 1000).toFixed(1)}K` : `$${v.toFixed(0)}`;
                       return (
-                        <div className="flex flex-wrap items-center gap-1">
-                          {/* Direction + leverage badge */}
-                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        <div className="flex items-center gap-1 flex-nowrap">
+                          {/* Direction + leverage */}
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${
                             isLong ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
                           }`}>
-                            {isLong ? 'L' : 'S'}
-                            {asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
+                            {isLong ? 'L' : 'S'}{asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
                           </span>
                           {/* Capital left */}
                           {asset.capitalLeft ? (
-                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full flex-shrink-0"
                               style={{ background: 'rgba(20,184,166,0.1)', border: '1px solid rgba(20,184,166,0.25)' }}>
                               <Wallet size={8} className="text-teal-500 flex-shrink-0" />
                               <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400">
@@ -181,18 +182,14 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                               </span>
                             </div>
                           ) : null}
-                          {/* Liquidation price */}
+                          {/* Liquidation price — compact */}
                           {liqPrice && (
-                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full flex-shrink-0"
                               style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
                               <AlertTriangle size={8} className="text-red-500 flex-shrink-0" />
-                              <span className="text-[10px] font-semibold text-red-500">
-                                {fmtCurrency(liqPrice)}
-                              </span>
+                              <span className="text-[10px] font-semibold text-red-500">{fmtK(liqPrice)}</span>
                               {distToLiq !== null && (
-                                <span className="text-[9px] text-red-400">
-                                  {distToLiq > 0 ? '+' : ''}{distToLiq.toFixed(0)}%
-                                </span>
+                                <span className="text-[9px] text-red-400">{distToLiq.toFixed(0)}%</span>
                               )}
                             </div>
                           )}
@@ -200,17 +197,17 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                       );
                     })()}
                   </td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm t-1">{fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)} {asset.symbol}</div>
-                    <div className="text-[11px] t-3">{fmtCurrency(pnl.costBasis)}</div>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className="text-sm t-1">{fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)} {asset.symbol}</span>
+                    <span className="text-[11px] t-3 ml-1.5">{fmtCurrency(pnl.costBasis)}</span>
                   </td>
-                  <td className="px-4 py-3 text-sm t-1">{fmtCurrency(asset.entryPrice)}</td>
-                  <td className="px-4 py-3">
-                    <div className="text-sm t-1">{fmtCurrency(asset.currentPrice)}</div>
+                  <td className="px-4 py-3 text-sm t-1 whitespace-nowrap">{fmtCurrency(asset.entryPrice)}</td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <span className="text-sm t-1">{fmtCurrency(asset.currentPrice)}</span>
                     {asset.change24h !== undefined && (
-                      <div className={`text-[11px] font-medium ${asset.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                      <span className={`text-[11px] font-medium ml-1.5 ${asset.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                         {fmtPercent(asset.change24h)}
-                      </div>
+                      </span>
                     )}
                   </td>
                   <td className={`px-4 py-3 text-sm font-medium ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
