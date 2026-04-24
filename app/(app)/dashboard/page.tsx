@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, BarChart2, Sliders, ShieldCheck, TrendingUp, Brain } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import StatsCards from '@/components/dashboard/StatsCards';
 import PortfolioTable from '@/components/dashboard/PortfolioTable';
@@ -21,30 +21,43 @@ import { fetchPrices } from '@/lib/coingecko';
 
 /* ── Mobile collapsible section ──────────────────────────────── */
 function MobileSection({
-  title, preview, open, onToggle, children,
+  title, preview, icon: Icon, iconColor, iconBg, open, onToggle, children,
 }: {
   title: string; preview: string;
+  icon: React.ElementType; iconColor: string; iconBg: string;
   open: boolean; onToggle: () => void; children: React.ReactNode;
 }) {
+  if (open) {
+    return (
+      <div>
+        {children}
+        <button
+          onClick={onToggle}
+          className="mt-2 w-full py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-medium t-3 transition-colors hover:t-1"
+          style={{ border: '1px solid var(--border)', background: 'var(--surface-deep)' }}
+        >
+          <ChevronDown size={13} style={{ transform: 'rotate(180deg)' }} />
+          Collapse
+        </button>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <button
-        onClick={onToggle}
-        className="w-full flex items-center justify-between px-4 py-3 rounded-xl glass text-left"
-        style={{ border: '1px solid var(--border)' }}
-      >
-        <div className="min-w-0 flex items-center gap-2">
-          <span className="text-sm font-semibold t-1">{title}</span>
-          {!open && <span className="text-xs t-3 truncate">— {preview}</span>}
-        </div>
-        <ChevronDown
-          size={15}
-          className="t-3 flex-shrink-0 ml-2 transition-transform duration-200"
-          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
-        />
-      </button>
-      {open && <div className="mt-2">{children}</div>}
-    </div>
+    <button
+      onClick={onToggle}
+      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-colors"
+      style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}
+    >
+      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
+        <Icon size={16} className={iconColor} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="text-sm font-semibold t-1 leading-tight">{title}</div>
+        <div className="text-xs t-3 truncate mt-0.5">{preview}</div>
+      </div>
+      <ChevronDown size={15} className="t-3 flex-shrink-0" />
+    </button>
   );
 }
 
@@ -177,7 +190,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <MobileSection title="Portfolio" preview={previews.portfolio} open={open.portfolio} onToggle={() => toggle('portfolio')}>
+        <MobileSection title="Portfolio" preview={previews.portfolio} icon={BarChart2} iconColor="text-blue-500" iconBg="bg-blue-500/10" open={open.portfolio} onToggle={() => toggle('portfolio')}>
           <div className="space-y-3">
             {portfolioTable}
             <PortfolioAllocation allocation={allocation} />
@@ -185,19 +198,19 @@ export default function Dashboard() {
           </div>
         </MobileSection>
 
-        <MobileSection title="Strategy Mode" preview={previews.strategy} open={open.strategy} onToggle={() => toggle('strategy')}>
+        <MobileSection title="Strategy Mode" preview={previews.strategy} icon={Sliders} iconColor="text-orange-500" iconBg="bg-orange-500/10" open={open.strategy} onToggle={() => toggle('strategy')}>
           {strategyMode}
         </MobileSection>
 
-        <MobileSection title="Recovery Plan" preview={previews.recovery} open={open.recovery} onToggle={() => toggle('recovery')}>
+        <MobileSection title="Recovery Plan" preview={previews.recovery} icon={ShieldCheck} iconColor="text-emerald-500" iconBg="bg-emerald-500/10" open={open.recovery} onToggle={() => toggle('recovery')}>
           {recoveryPlan}
         </MobileSection>
 
-        <MobileSection title="Scenario Outlook" preview={previews.scenario} open={open.scenario} onToggle={() => toggle('scenario')}>
+        <MobileSection title="Scenario Outlook" preview={previews.scenario} icon={TrendingUp} iconColor="text-purple-500" iconBg="bg-purple-500/10" open={open.scenario} onToggle={() => toggle('scenario')}>
           {scenarioOutlook}
         </MobileSection>
 
-        <MobileSection title="Behavioral Guard" preview={previews.behavioral} open={open.behavioral} onToggle={() => toggle('behavioral')}>
+        <MobileSection title="Behavioral Guard" preview={previews.behavioral} icon={Brain} iconColor="text-amber-500" iconBg="bg-amber-500/10" open={open.behavioral} onToggle={() => toggle('behavioral')}>
           {behavioralGuard}
         </MobileSection>
       </div>
