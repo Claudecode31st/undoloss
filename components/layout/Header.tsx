@@ -29,14 +29,14 @@ export default function Header({ title, subtitle, lastUpdated, marketStatus = 'N
           <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot flex-shrink-0" />
           <span className="text-xs t-2 whitespace-nowrap">{marketStatus}</span>
         </div>
-        <span className="text-xs t-3 whitespace-nowrap hidden xs:inline">{time}</span>
         {onRefresh && (
           <button
             onClick={onRefresh}
             disabled={refreshing}
-            className="p-1.5 glass rounded-lg t-2 hover:text-orange-400 transition-colors disabled:opacity-50 flex-shrink-0"
+            className="flex items-center gap-1.5 px-3 py-2 glass rounded-xl t-2 hover:text-orange-400 transition-colors disabled:opacity-50 flex-shrink-0 active:scale-95"
           >
             <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
+            <span className="text-xs t-3 whitespace-nowrap">{refreshing ? 'Updating…' : time}</span>
           </button>
         )}
       </div>
