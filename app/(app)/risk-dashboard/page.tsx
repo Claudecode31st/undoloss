@@ -38,7 +38,6 @@ export default function RiskDashboardPage() {
               <path d="M10 75 A 70 70 0 0 1 150 75" fill="none" stroke={riskColor} strokeWidth="12" strokeLinecap="round"
                 strokeDasharray={`${(riskAngle / 180) * 220} 220`} style={{ transition: 'stroke-dasharray 0.8s ease' }} />
               <text x="80" y="68" textAnchor="middle" style={{ fill: 'var(--text-1)', fontSize: '22px', fontWeight: 'bold' }}>{risk.score}</text>
-              <text x="80" y="78" textAnchor="middle" style={{ fill: 'var(--text-3)', fontSize: '8px' }}>/100</text>
             </svg>
           </div>
           <div className="text-base font-bold mt-2" style={{ color: riskColor }}>{risk.level}</div>

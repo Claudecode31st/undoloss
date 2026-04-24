@@ -79,7 +79,6 @@ export default function StatsCards({ stats, risk }: StatsCardsProps) {
             <path d="M10 55 A 50 50 0 0 1 110 55" fill="none" stroke={riskColor} strokeWidth="10" strokeLinecap="round"
               strokeDasharray={`${(riskAngle / 180) * 157} 157`} style={{ transition: 'stroke-dasharray 0.5s ease' }} />
             <text x="60" y="48" textAnchor="middle" fill="var(--text-1)" fontSize="16" fontWeight="bold">{risk.score}</text>
-            <text x="60" y="57" textAnchor="middle" fill="var(--text-3)" fontSize="6">/100</text>
           </svg>
         </div>
         <div className="text-xs mt-1 font-medium" style={{ color: riskColor }}>{risk.level}</div>
