@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { X, Search, Loader2 } from 'lucide-react';
+import { X, Search, Loader2, AlertTriangle } from 'lucide-react';
 import { CryptoAsset, SUPPORTED_COINS } from '@/lib/types';
 import { generateId } from '@/lib/storage';
+import { calcMarginCallPrice, fmtCurrency } from '@/lib/calculations';
 
 interface AssetModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
   const [currentPrice, setCurrentPrice] = useState('');
   const [direction, setDirection] = useState<'long' | 'short'>('long');
   const [capitalLeft, setCapitalLeft] = useState('');
+  const [leverage, setLeverage] = useState('1');
   const [fetchingPrice, setFetchingPrice] = useState(false);
   const [query, setQuery] = useState('');
   const isEdit = !!asset;
@@ -32,10 +34,11 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
       setEntryPrice(String(asset.entryPrice)); setCurrentPrice(String(asset.currentPrice));
       setDirection(asset.direction ?? 'long');
       setCapitalLeft(asset.capitalLeft ? String(asset.capitalLeft) : '');
+      setLeverage(String(asset.leverage ?? 1));
     } else {
       setSymbol(''); setName(''); setCoinGeckoId(''); setColor('#f97316');
       setAmount(''); setEntryPrice(''); setCurrentPrice('');
-      setDirection('long'); setCapitalLeft('');
+      setDirection('long'); setCapitalLeft(''); setLeverage('1');
     }
     setQuery('');
   }, [asset, open]);
@@ -56,11 +59,30 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
     (c) => c.symbol.toLowerCase().includes(query.toLowerCase()) || c.name.toLowerCase().includes(query.toLowerCase())
   );
 
+  const leverageNum = Math.max(1, Math.min(100, parseInt(leverage) || 1));
+  const entryNum = parseFloat(entryPrice) || 0;
+  const currentNum = parseFloat(currentPrice) || 0;
+
+  // Margin call preview
+  const previewAsset: CryptoAsset = {
+    id: '', symbol, name, coinGeckoId, color,
+    amount: parseFloat(amount) || 0,
+    entryPrice: entryNum,
+    currentPrice: currentNum,
+    direction,
+    leverage: leverageNum,
+  };
+  const marginCall = leverageNum > 1 ? calcMarginCallPrice(previewAsset) : null;
+  const distToMarginCall = marginCall && currentNum > 0
+    ? ((marginCall - currentNum) / currentNum) * 100
+    : null;
+
   const handleSave = () => {
-    const parsed = {
+    const parsed: CryptoAsset = {
       id: asset?.id ?? generateId(), symbol: symbol.toUpperCase(), name, coinGeckoId,
-      amount: parseFloat(amount) || 0, entryPrice: parseFloat(entryPrice) || 0,
-      currentPrice: parseFloat(currentPrice) || 0, color, direction,
+      amount: parseFloat(amount) || 0, entryPrice: entryNum,
+      currentPrice: currentNum, color, direction,
+      leverage: leverageNum > 1 ? leverageNum : undefined,
       ...(capitalLeft ? { capitalLeft: parseFloat(capitalLeft) } : {}),
     };
     if (!parsed.symbol || parsed.amount <= 0 || parsed.entryPrice <= 0) return;
@@ -73,7 +95,7 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative glass rounded-2xl p-6 w-full max-w-md shadow-2xl">
+      <div className="relative glass rounded-2xl p-6 w-full max-w-md shadow-2xl overflow-y-auto max-h-[90vh]">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold t-1">{isEdit ? 'Edit Asset' : 'Add Asset'}</h2>
           <button onClick={onClose} className="p-1.5 rounded-lg t-3 hover:t-1 transition-colors"
@@ -134,7 +156,7 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>
-            <label className="text-xs t-2 mb-1.5 block">Amount</label>
+            <label className="text-xs t-2 mb-1.5 block">Amount (tokens)</label>
             <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
               placeholder="0.00" className="glass-input w-full rounded-xl px-3 py-2 text-sm" />
           </div>
@@ -152,6 +174,42 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
             <input type="number" value={currentPrice} onChange={(e) => setCurrentPrice(e.target.value)}
               placeholder="0.00" className="glass-input w-full rounded-xl px-3 py-2 text-sm" />
           </div>
+
+          {/* Leverage */}
+          <div className="col-span-2">
+            <div className="flex justify-between items-center mb-1.5">
+              <label className="text-xs t-2">Leverage</label>
+              <span className={`text-sm font-bold ${leverageNum > 10 ? 'text-red-500' : leverageNum > 3 ? 'text-orange-500' : 'text-emerald-500'}`}>
+                {leverageNum}×
+              </span>
+            </div>
+            <input type="range" min={1} max={100} step={1} value={leverageNum}
+              onChange={(e) => setLeverage(e.target.value)}
+              className="w-full h-2 rounded-full appearance-none cursor-pointer mb-1"
+              style={{ background: `linear-gradient(to right, ${leverageNum > 10 ? '#ef4444' : leverageNum > 3 ? '#f97316' : '#22c55e'} ${leverageNum}%, var(--border-strong) ${leverageNum}%)` }} />
+            <div className="flex justify-between text-[10px] t-3"><span>1×</span><span>10×</span><span>25×</span><span>50×</span><span>100×</span></div>
+          </div>
+
+          {/* Margin call preview */}
+          {marginCall !== null && entryNum > 0 && (
+            <div className="col-span-2 px-3 py-2.5 rounded-xl flex items-start gap-2"
+              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
+              <AlertTriangle size={13} className="text-red-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <div className="text-xs font-semibold text-red-500">
+                  Liquidation price: {fmtCurrency(marginCall)}
+                </div>
+                {distToMarginCall !== null && currentNum > 0 && (
+                  <div className="text-[10px] t-3 mt-0.5">
+                    {direction === 'long'
+                      ? `Price must drop ${Math.abs(distToMarginCall).toFixed(1)}% from current to trigger liquidation`
+                      : `Price must rise ${Math.abs(distToMarginCall).toFixed(1)}% from current to trigger liquidation`}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           <div className="col-span-2">
             <label className="text-xs t-2 mb-1.5 block">
               Capital Left to Deploy (USD) <span className="t-3 text-[10px]">(optional)</span>

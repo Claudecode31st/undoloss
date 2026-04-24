@@ -142,10 +142,6 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-sm t-1">{fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)} {asset.symbol}</div>
-                    <div className="text-[11px] t-3">{fmtCurrency(pnl.costBasis)}</div>
-                  </td>
-                  <td className="px-4 py-3">
                     <div className="flex flex-col gap-1">
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full w-fit ${
                         (asset.direction ?? 'long') === 'long'
@@ -153,9 +149,14 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                           : 'bg-red-500/15 text-red-500'
                       }`}>
                         {(asset.direction ?? 'long').toUpperCase()}
+                        {asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
                       </span>
                       {asset.capitalLeft ? <span className="text-[10px] text-blue-500">${asset.capitalLeft.toLocaleString()} left</span> : null}
                     </div>
+                  </td>
+                  <td className="px-4 py-3">
+                    <div className="text-sm t-1">{fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)} {asset.symbol}</div>
+                    <div className="text-[11px] t-3">{fmtCurrency(pnl.costBasis)}</div>
                   </td>
                   <td className="px-4 py-3 text-sm t-1">{fmtCurrency(asset.entryPrice)}</td>
                   <td className="px-4 py-3">

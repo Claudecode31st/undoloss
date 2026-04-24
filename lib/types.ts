@@ -13,6 +13,7 @@ export interface CryptoAsset {
   change24h?: number;
   direction?: 'long' | 'short';
   capitalLeft?: number;
+  leverage?: number;
 }
 
 export interface Prefs {

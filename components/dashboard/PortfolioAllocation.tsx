@@ -1,28 +1,31 @@
 'use client';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import GlassCard from '@/components/ui/GlassCard';
-import { AllocationItem } from '@/lib/types';
+import { CryptoAsset } from '@/lib/types';
+import { calcAllocation, calcAssetPnL, calcBreakevenMove, fmtCurrency, fmtPercent } from '@/lib/calculations';
 
 interface PortfolioAllocationProps {
-  allocation: AllocationItem[];
+  assets: CryptoAsset[];
 }
 
-export default function PortfolioAllocation({ allocation }: PortfolioAllocationProps) {
-  if (allocation.length === 0) {
+export default function PortfolioAllocation({ assets }: PortfolioAllocationProps) {
+  const allocation = calcAllocation(assets);
+
+  if (assets.length === 0) {
     return (
-      <GlassCard className="p-4 flex items-center justify-center h-full min-h-[200px]">
-        <p className="t-3 text-sm">Add assets to see allocation</p>
+      <GlassCard className="p-4 flex items-center justify-center min-h-[200px]">
+        <p className="t-3 text-sm">Add assets to see breakdown</p>
       </GlassCard>
     );
   }
 
-  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ name: string; value: number; payload: AllocationItem }> }) => {
+  const CustomTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { symbol: string; percent: number; value: number } }> }) => {
     if (active && payload?.length) {
       const d = payload[0].payload;
       return (
-        <div className="glass rounded-lg px-3 py-2 text-xs">
+        <div className="glass rounded-lg px-3 py-2 text-xs shadow-lg">
           <div className="font-semibold t-1">{d.symbol}</div>
-          <div className="t-3">{d.percent.toFixed(1)}%</div>
+          <div className="t-3">{d.percent.toFixed(1)}% · {fmtCurrency(d.value)}</div>
         </div>
       );
     }
@@ -30,16 +33,18 @@ export default function PortfolioAllocation({ allocation }: PortfolioAllocationP
   };
 
   return (
-    <GlassCard className="p-4 h-full">
-      <h2 className="text-sm font-semibold t-1 mb-4 flex items-center gap-2">
+    <GlassCard className="p-4">
+      <h2 className="text-sm font-semibold t-1 mb-3 flex items-center gap-2">
         <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-        Portfolio Allocation
+        Portfolio Breakdown
       </h2>
-      <div className="flex items-center gap-4">
-        <div className="w-36 h-36 flex-shrink-0">
+
+      {/* Pie + legend row */}
+      <div className="flex items-center gap-4 mb-4">
+        <div className="w-28 h-28 flex-shrink-0">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
-              <Pie data={allocation} cx="50%" cy="50%" innerRadius={42} outerRadius={62} paddingAngle={2} dataKey="percent">
+              <Pie data={allocation} cx="50%" cy="50%" innerRadius={34} outerRadius={52} paddingAngle={2} dataKey="percent">
                 {allocation.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} stroke="transparent" />
                 ))}
@@ -48,17 +53,104 @@ export default function PortfolioAllocation({ allocation }: PortfolioAllocationP
             </PieChart>
           </ResponsiveContainer>
         </div>
-        <div className="flex-1 space-y-1.5">
+        <div className="flex-1 space-y-1">
           {allocation.map((item) => (
             <div key={item.symbol} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
                 <span className="text-xs t-2">{item.symbol}</span>
               </div>
-              <span className="text-xs font-semibold t-1">{item.percent.toFixed(1)}%</span>
+              <div className="text-right">
+                <span className="text-xs font-semibold t-1">{item.percent.toFixed(1)}%</span>
+                <span className="text-[10px] t-3 ml-1.5">{fmtCurrency(item.value, 0)}</span>
+              </div>
             </div>
           ))}
         </div>
+      </div>
+
+      {/* Per-asset breakeven + buy zones */}
+      <div className="border-t pt-3 space-y-3" style={{ borderColor: 'var(--border)' }}>
+        <div className="text-[10px] t-3 uppercase tracking-wider font-medium">Breakeven &amp; Buy Zones</div>
+        {assets.map((asset) => {
+          const pnl = calcAssetPnL(asset);
+          const move = calcBreakevenMove(asset);
+          const isShort = asset.direction === 'short';
+          const inProfit = pnl.unrealizedPnL >= 0;
+          const pnlPct = pnl.unrealizedPnLPercent;
+
+          // Buy zone prices (DCA below current — only for longs)
+          const z1 = asset.currentPrice * 0.90;
+          const z2 = asset.currentPrice * 0.80;
+          const z3 = asset.currentPrice * 0.70;
+
+          // Progress: 0% = current price = 100% loss from entry; 100% = at entry price
+          const progress = asset.entryPrice > 0
+            ? Math.min(100, Math.max(0, (asset.currentPrice / asset.entryPrice) * 100))
+            : 0;
+
+          return (
+            <div key={asset.id} className="rounded-xl p-3" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+              {/* Row 1: symbol + P&L */}
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
+                    style={{ backgroundColor: asset.color + '33', border: `1px solid ${asset.color}55`, color: asset.color }}>
+                    {asset.symbol.slice(0, 2)}
+                  </div>
+                  <div>
+                    <span className="text-xs font-semibold t-1">{asset.symbol}</span>
+                    <span className={`ml-1.5 text-[9px] font-bold px-1 py-0.5 rounded-full ${isShort ? 'bg-red-500/15 text-red-500' : 'bg-emerald-500/15 text-emerald-600'}`}>
+                      {isShort ? 'SHORT' : 'LONG'}
+                    </span>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <div className={`text-xs font-bold tabular-nums ${inProfit ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {fmtPercent(pnlPct)}
+                  </div>
+                  <div className={`text-[10px] font-medium ${inProfit ? 'text-emerald-500' : 'text-red-500'}`}>
+                    {fmtCurrency(pnl.unrealizedPnL)}
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress bar: current vs entry */}
+              <div className="relative h-2 rounded-full overflow-hidden mb-1" style={{ background: 'var(--border)' }}>
+                <div className="h-full rounded-full transition-all"
+                  style={{ width: `${progress}%`, background: inProfit ? '#22c55e' : '#ef4444' }} />
+              </div>
+              <div className="flex justify-between text-[10px] t-3 mb-2">
+                <span>Entry {fmtCurrency(asset.entryPrice)}</span>
+                <span>Now {fmtCurrency(asset.currentPrice)}</span>
+              </div>
+
+              {/* Breakeven need */}
+              <div className={`text-[11px] font-semibold mb-2 ${inProfit ? 'text-emerald-500' : 'text-orange-500'}`}>
+                {inProfit
+                  ? '✓ In profit'
+                  : `Needs ${isShort ? '↓' : '↑'}${Math.abs(move).toFixed(1)}% to break even`}
+              </div>
+
+              {/* Buy zones (long only) */}
+              {!isShort && (
+                <div className="grid grid-cols-3 gap-1.5">
+                  {[
+                    { label: 'Zone −10%', price: z1, color: '#22c55e' },
+                    { label: 'Zone −20%', price: z2, color: '#f97316' },
+                    { label: 'Zone −30%', price: z3, color: '#ef4444' },
+                  ].map((z) => (
+                    <div key={z.label} className="rounded-lg px-2 py-1.5 text-center"
+                      style={{ background: z.color + '14', border: `1px solid ${z.color}33` }}>
+                      <div className="text-[9px] font-medium" style={{ color: z.color }}>{z.label}</div>
+                      <div className="text-[10px] font-bold t-1">{fmtCurrency(z.price)}</div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </GlassCard>
   );
