@@ -39,8 +39,9 @@ export default function ScenarioSimulatorPage() {
             </div>
             <input type="range" min="-80" max="200" step="5" value={priceChange}
               onChange={(e) => setPriceChange(Number(e.target.value))}
+              onTouchStart={(e) => e.stopPropagation()}
               className="w-full h-2 rounded-full appearance-none cursor-pointer"
-              style={{ background: `linear-gradient(to right, ${priceChange < 0 ? '#ef4444' : '#22c55e'} ${Math.abs(priceChange) / (priceChange < 0 ? 0.8 : 2) * 100}%, var(--border-strong) ${Math.abs(priceChange) / (priceChange < 0 ? 0.8 : 2) * 100}%)` }} />
+              style={{ background: `linear-gradient(to right, ${priceChange < 0 ? '#ef4444' : '#22c55e'} ${Math.abs(priceChange) / (priceChange < 0 ? 0.8 : 2) * 100}%, var(--border-strong) ${Math.abs(priceChange) / (priceChange < 0 ? 0.8 : 2) * 100}%)`, touchAction: 'none' }} />
             <div className="flex justify-between text-[10px] t-3 mt-1">
               <span>-80%</span><span>0%</span><span>+200%</span>
             </div>

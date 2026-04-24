@@ -102,6 +102,32 @@ body {
   background-clip: text;
 }
 
+/* ── Range sliders — mobile-friendly ─────────────────────────── */
+input[type="range"] {
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+}
+/* Larger thumb on touch screens for easier grabbing */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid currentColor;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid currentColor;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  cursor: pointer;
+}
+
 /* ── Animations ──────────────────────────────────────────────── */
 @keyframes pulse-dot { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
 .pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }

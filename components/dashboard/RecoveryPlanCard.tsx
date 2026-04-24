@@ -105,8 +105,9 @@ export default function RecoveryPlanCard({ result, hedgeRatio, onHedgeChange }: 
           <input
             type="range" min="0" max="100" step="5" value={hedgeRatio}
             onChange={(e) => onHedgeChange(Number(e.target.value))}
+            onTouchStart={(e) => e.stopPropagation()}
             className="w-full h-2 appearance-none rounded-full cursor-pointer"
-            style={{ background: `linear-gradient(to right, #6366f1 ${hedgeRatio}%, var(--border-strong) ${hedgeRatio}%)` }}
+            style={{ background: `linear-gradient(to right, #6366f1 ${hedgeRatio}%, var(--border-strong) ${hedgeRatio}%)`, touchAction: 'none' }}
           />
           <div className="flex justify-between text-[10px] t-3 mt-2">
             <span>0%</span><span>25%</span><span>50%</span><span>75%</span><span>100%</span>
