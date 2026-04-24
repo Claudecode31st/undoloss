@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { Scissors, Anchor, TrendingDown, ArrowRight } from 'lucide-react';
+import { Scissors, Anchor, TrendingDown } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { CryptoAsset } from '@/lib/types';
 import { calcPortfolioStats, fmtCurrency, fmtPercent } from '@/lib/calculations';
@@ -43,9 +43,6 @@ export default function RecoveryPanel({ assets }: RecoveryPanelProps) {
   const dcaTarget = inv + freshCapital; // new higher bar since you're adding money
   const dcaNeed = pctGainNeeded(dcaTarget, dcaPool);
   const dcaCovered = dcaPool >= dcaTarget;
-
-  const perAssetBudget = freshCapital / Math.max(assets.length, 1);
-  const sorted = [...assets].sort((a, b) => b.currentPrice * b.amount - a.currentPrice * a.amount);
 
   return (
     <GlassCard className="p-4">
@@ -220,67 +217,12 @@ export default function RecoveryPanel({ assets }: RecoveryPanelProps) {
         </div>
       </div>
 
-      {/* ── Per-asset DCA rows ── */}
-      {freshCapital > 0 && (
-        <div className="border-t pt-3" style={{ borderColor: 'var(--border)' }}>
-          <div className="text-[10px] t-3 uppercase tracking-wider font-medium mb-2">
-            Average Down Detail
-            <span className="ml-1.5 normal-case font-normal">· {fmtCurrency(perAssetBudget, 0)} per asset</span>
-          </div>
-          <div className="space-y-2">
-            {sorted.map((asset) => {
-              const assetCost = asset.entryPrice * asset.amount;
-              const gainNeededNow = asset.currentPrice > 0
-                ? Math.max(0, ((asset.entryPrice / asset.currentPrice) - 1) * 100)
-                : 0;
-
-              // Buy more at current price with budget
-              const newTokens = asset.currentPrice > 0 ? perAssetBudget / asset.currentPrice : 0;
-              const newTotalTokens = asset.amount + newTokens;
-              const newTotalCost = assetCost + perAssetBudget;
-              const newAvg = newTotalTokens > 0 ? newTotalCost / newTotalTokens : 0;
-              const gainNeededAfter = asset.currentPrice > 0
-                ? Math.max(0, ((newAvg / asset.currentPrice) - 1) * 100)
-                : 0;
-              const improvement = gainNeededNow - gainNeededAfter;
-
-              return (
-                <div key={asset.id} className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-                  style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-                  {/* Avatar */}
-                  <div className="w-7 h-7 rounded-full flex items-center justify-center text-[9px] font-bold flex-shrink-0"
-                    style={{ backgroundColor: asset.color + '22', border: `1px solid ${asset.color}44`, color: asset.color }}>
-                    {asset.symbol.slice(0, 2)}
-                  </div>
-                  {/* Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-semibold t-1">{asset.symbol}</span>
-                      <span className="text-[9px] t-3">Buy {fmtCurrency(perAssetBudget, 0)} @ {fmtCurrency(asset.currentPrice)}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] t-3">Avg entry:</span>
-                      <span className="text-[10px] font-medium t-2">{fmtCurrency(asset.entryPrice)}</span>
-                      <ArrowRight size={9} className="t-3" />
-                      <span className="text-[10px] font-bold text-emerald-500">{fmtCurrency(newAvg)}</span>
-                    </div>
-                  </div>
-                  {/* Before → After */}
-                  <div className="text-right flex-shrink-0">
-                    <div className="text-[9px] t-3 mb-0.5">Need to break even</div>
-                    <div className="flex items-center gap-1 justify-end">
-                      <span className="text-[10px] font-medium text-red-400">+{gainNeededNow.toFixed(1)}%</span>
-                      <ArrowRight size={9} className="t-3" />
-                      <span className="text-[10px] font-bold text-emerald-500">+{gainNeededAfter.toFixed(1)}%</span>
-                    </div>
-                    {improvement > 0.1 && (
-                      <div className="text-[9px] font-semibold text-emerald-500">−{improvement.toFixed(1)}pp easier</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+      {/* Hint to use DCA Planner for execution */}
+      {!isProfit && freshCapital > 0 && (
+        <div className="border-t pt-3 mt-1" style={{ borderColor: 'var(--border)' }}>
+          <p className="text-[11px] t-3 text-center">
+            Ready to average down? Head to <span className="text-orange-500 font-medium">DCA Planner</span> to build your month-by-month buy schedule.
+          </p>
         </div>
       )}
     </GlassCard>

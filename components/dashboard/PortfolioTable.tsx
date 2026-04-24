@@ -128,22 +128,12 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
       </div>
 
       {/* ── Desktop table ── */}
-      <div className="hidden md:block overflow-hidden">
-        <table className="w-full table-fixed">
-          <colgroup>
-            <col className="w-[18%]" />  {/* Asset */}
-            <col className="w-[22%]" />  {/* Direction */}
-            <col className="w-[12%]" />  {/* Amount */}
-            <col className="w-[11%]" />  {/* Entry Price */}
-            <col className="w-[14%]" />  {/* Current Price */}
-            <col className="w-[11%]" />  {/* P/L $ */}
-            <col className="w-[8%]"  />  {/* P/L % */}
-            <col className="w-[6%]"  />  {/* Actions */}
-          </colgroup>
+      <div className="hidden md:block">
+        <table className="w-full">
           <thead>
             <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['Asset', 'Direction', 'Amount', 'Entry', 'Current', 'P/L', '%', ''].map((h) => (
-                <th key={h} className="text-left text-[11px] t-3 font-medium px-3 py-2.5">{h}</th>
+              {['Asset', 'Direction', 'Amount', 'Entry', 'Current', 'Unrealized P/L', 'P/L %', ''].map((h) => (
+                <th key={h} className="text-left text-[11px] t-3 font-medium px-5 py-3 whitespace-nowrap">{h}</th>
               ))}
             </tr>
           </thead>
@@ -153,19 +143,23 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
               const pos = pnl.unrealizedPnL >= 0;
               return (
                 <tr key={asset.id} className="table-row-hover transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
+
+                  {/* Asset */}
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
                         style={{ background: `linear-gradient(135deg, ${asset.color}dd, ${asset.color}88)` }}>
                         {asset.symbol.slice(0, 1)}
                       </div>
-                      <div className="min-w-0">
-                        <div className="text-sm font-semibold t-1 truncate">{asset.symbol}</div>
-                        <div className="text-[10px] t-3 truncate">{asset.name}</div>
+                      <div>
+                        <div className="text-[13px] font-semibold t-1 leading-tight">{asset.symbol}</div>
+                        <div className="text-[11px] t-3 leading-tight mt-0.5">{asset.name}</div>
                       </div>
                     </div>
                   </td>
-                  <td className="px-3 py-3">
+
+                  {/* Direction */}
+                  <td className="px-5 py-4">
                     {(() => {
                       const isLong = (asset.direction ?? 'long') === 'long';
                       const liqPrice = calcMarginCallPrice(asset);
@@ -174,28 +168,28 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                         : null;
                       const fmtK = (v: number) => v >= 1000 ? `$${(v / 1000).toFixed(1)}K` : `$${v.toFixed(0)}`;
                       return (
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full flex-shrink-0 ${
+                        <div className="flex items-center gap-1.5 flex-wrap">
+                          <span className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
                             isLong ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
                           }`}>
                             {isLong ? 'L' : 'S'}{asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
                           </span>
                           {asset.capitalLeft ? (
-                            <div className="flex items-center gap-0.5 px-1 py-0.5 rounded-full flex-shrink-0"
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
                               style={{ background: 'rgba(20,184,166,0.1)', border: '1px solid rgba(20,184,166,0.25)' }}>
-                              <Wallet size={7} className="text-teal-500" />
-                              <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400">
+                              <Wallet size={9} className="text-teal-500" />
+                              <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400">
                                 {fmtCurrency(asset.capitalLeft, 0)}
                               </span>
                             </div>
                           ) : null}
                           {liqPrice && (
-                            <div className="flex items-center gap-0.5 px-1 py-0.5 rounded-full flex-shrink-0"
+                            <div className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
                               style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)' }}>
-                              <AlertTriangle size={7} className="text-red-500" />
-                              <span className="text-[10px] font-semibold text-red-500">{fmtK(liqPrice)}</span>
+                              <AlertTriangle size={9} className="text-red-500" />
+                              <span className="text-[11px] font-semibold text-red-500">{fmtK(liqPrice)}</span>
                               {distToLiq !== null && (
-                                <span className="text-[9px] text-red-400">{distToLiq.toFixed(0)}%</span>
+                                <span className="text-[10px] text-red-400 ml-0.5">{distToLiq.toFixed(0)}%</span>
                               )}
                             </div>
                           )}
@@ -203,37 +197,56 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                       );
                     })()}
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="text-sm t-1 truncate">{fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)}</div>
-                    <div className="text-[10px] t-3 truncate">{fmtCurrency(pnl.costBasis)}</div>
+
+                  {/* Amount */}
+                  <td className="px-5 py-4">
+                    <div className="text-[13px] t-1 leading-tight">{fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)} <span className="t-3 text-[11px]">{asset.symbol}</span></div>
+                    <div className="text-[11px] t-3 mt-0.5">{fmtCurrency(pnl.costBasis)}</div>
                   </td>
-                  <td className="px-3 py-3 text-sm t-1 truncate">{fmtCurrency(asset.entryPrice)}</td>
-                  <td className="px-3 py-3">
-                    <div className="text-sm t-1 truncate">{fmtCurrency(asset.currentPrice)}</div>
+
+                  {/* Entry */}
+                  <td className="px-5 py-4">
+                    <div className="text-[13px] t-1">{fmtCurrency(asset.entryPrice)}</div>
+                  </td>
+
+                  {/* Current */}
+                  <td className="px-5 py-4">
+                    <div className="text-[13px] t-1 leading-tight">{fmtCurrency(asset.currentPrice)}</div>
                     {asset.change24h !== undefined && (
-                      <div className={`text-[10px] font-medium ${asset.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                      <div className={`text-[11px] font-medium mt-0.5 ${asset.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                         {fmtPercent(asset.change24h)}
                       </div>
                     )}
                   </td>
-                  <td className={`px-3 py-3 text-sm font-semibold ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {fmtCurrency(pnl.unrealizedPnL)}
+
+                  {/* Unrealized P/L */}
+                  <td className="px-5 py-4">
+                    <div className={`text-[13px] font-semibold leading-tight ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {fmtCurrency(pnl.unrealizedPnL)}
+                    </div>
                   </td>
-                  <td className={`px-3 py-3 text-sm font-semibold ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {fmtPercent(pnl.unrealizedPnLPercent)}
+
+                  {/* P/L % */}
+                  <td className="px-5 py-4">
+                    <div className={`text-[13px] font-semibold ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {fmtPercent(pnl.unrealizedPnLPercent)}
+                    </div>
                   </td>
-                  <td className="px-3 py-3">
-                    <div className="flex items-center gap-1">
+
+                  {/* Actions */}
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-1.5">
                       <button onClick={() => onEdit(asset)}
-                        className="p-1 rounded-lg t-3 hover:text-orange-500 transition-colors" style={{ background: 'var(--surface-deep)' }}>
-                        <Pencil size={12} />
+                        className="p-1.5 rounded-lg t-3 hover:text-orange-500 transition-colors" style={{ background: 'var(--surface-deep)' }}>
+                        <Pencil size={13} />
                       </button>
                       <button onClick={() => onDelete(asset.id)}
-                        className="p-1 rounded-lg t-3 hover:text-red-500 transition-colors" style={{ background: 'var(--surface-deep)' }}>
-                        <Trash2 size={12} />
+                        className="p-1.5 rounded-lg t-3 hover:text-red-500 transition-colors" style={{ background: 'var(--surface-deep)' }}>
+                        <Trash2 size={13} />
                       </button>
                     </div>
                   </td>
+
                 </tr>
               );
             })}
@@ -241,11 +254,11 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
           {assets.length > 0 && (
             <tfoot>
               <tr style={{ borderTop: '1px solid var(--border)' }}>
-                <td colSpan={5} className="px-3 py-3 text-xs t-3 font-medium">Total</td>
-                <td className={`px-3 py-3 text-sm font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                <td colSpan={5} className="px-5 py-3.5 text-[11px] t-3 font-medium">Total</td>
+                <td className={`px-5 py-3.5 text-[13px] font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                   {fmtCurrency(totalPnL)}
                 </td>
-                <td className={`px-3 py-3 text-sm font-bold ${totalPnLPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                <td className={`px-5 py-3.5 text-[13px] font-bold ${totalPnLPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
                   {fmtPercent(totalPnLPct)}
                 </td>
                 <td />
