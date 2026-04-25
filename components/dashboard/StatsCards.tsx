@@ -2,7 +2,7 @@
 import { DollarSign, Activity, CreditCard, Shield, Wallet } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { CryptoAsset, PortfolioStats, RiskScore } from '@/lib/types';
-import { fmtCurrency, fmtPercent } from '@/lib/calculations';
+import { calcAssetPnL, fmtCurrency, fmtPercent } from '@/lib/calculations';
 
 interface StatsCardsProps {
   stats: PortfolioStats;
@@ -27,6 +27,18 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
 
   // Capital available = sum of capitalLeft across all assets
   const capitalAvailable = assets.reduce((sum, a) => sum + (a.capitalLeft ?? 0), 0);
+
+  // Top 2 assets by market value for concentration display
+  const totalValue = stats.totalValue;
+  const sortedByValue = [...assets]
+    .map(a => ({ symbol: a.symbol, value: calcAssetPnL(a).marketValue }))
+    .sort((a, b) => b.value - a.value);
+  const top2 = sortedByValue.slice(0, 2);
+  const concLabel = top2.length >= 2
+    ? `${top2[0].symbol} ${(top2[0].value / totalValue * 100).toFixed(0)}% · ${top2[1].symbol} ${(top2[1].value / totalValue * 100).toFixed(0)}%`
+    : top2.length === 1
+    ? `${top2[0].symbol} 100%`
+    : '—';
 
   // Risk breakdown bar width helpers
   const ddPct = risk.drawdownScore / 40 * 100;
@@ -123,7 +135,7 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
             <div className="flex justify-between items-baseline mb-0.5">
               <span className="text-[9px] t-3">Concentration</span>
               <span className={`text-[9px] font-semibold ${risk.top2AssetsPercent > 75 ? 'text-orange-500' : 'text-emerald-500'}`}>
-                Top 2 = {risk.top2AssetsPercent.toFixed(0)}% of portfolio
+                {concLabel}
               </span>
             </div>
             <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
