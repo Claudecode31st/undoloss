@@ -130,8 +130,10 @@ export default function MobileNav() {
                 <div className="text-sm font-semibold t-1">Support the Project</div>
                 <p className="text-xs t-3 mt-0.5 leading-snug">If this tool helped you manage your crypto journey, consider supporting its development.</p>
               </div>
-              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-80"
-                style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316' }}>
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-colors duration-200"
+                style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316' }}
+                onMouseEnter={e => (e.currentTarget.style.background = 'rgba(249,115,22,0.18)')}
+                onMouseLeave={e => (e.currentTarget.style.background = 'rgba(249,115,22,0.1)')}>
                 <Coffee size={14} />
                 Buy Me a Coffee
               </button>
