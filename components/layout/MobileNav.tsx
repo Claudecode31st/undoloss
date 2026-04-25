@@ -4,15 +4,13 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import {
-  LayoutDashboard, Calculator, CalendarDays, ShieldOff,
+  LayoutDashboard, CalendarDays,
   MoreHorizontal, Settings, HelpCircle, Sun, Moon, X
 } from 'lucide-react';
 
 const primary = [
-  { href: '/dashboard',            label: 'Home',      icon: LayoutDashboard },
-  { href: '/recovery-calculator',  label: 'Recovery',  icon: Calculator },
-  { href: '/dca-planner',          label: 'DCA',       icon: CalendarDays },
-  { href: '/exit-guardian',        label: 'Exit Guard',icon: ShieldOff },
+  { href: '/dashboard',   label: 'Home', icon: LayoutDashboard },
+  { href: '/dca-planner', label: 'DCA',  icon: CalendarDays },
 ];
 
 const more = [

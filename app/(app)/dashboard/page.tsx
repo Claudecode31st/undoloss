@@ -5,7 +5,7 @@ import Header from '@/components/layout/Header';
 import StatsCards from '@/components/dashboard/StatsCards';
 import PortfolioTable from '@/components/dashboard/PortfolioTable';
 import PortfolioAllocation from '@/components/dashboard/PortfolioAllocation';
-import RecoveryPanel from '@/components/dashboard/RecoveryPanel';
+import ExitGuardianPanel from '@/components/dashboard/ExitGuardianPanel';
 import DCAPanel from '@/components/dashboard/DCAPanel';
 import AssetModal from '@/components/modals/AssetModal';
 import { CryptoAsset, Portfolio, Prefs } from '@/lib/types';
@@ -163,7 +163,7 @@ export default function Dashboard() {
           <div className="space-y-3">
             {portfolioTable}
             <PortfolioAllocation assets={portfolio.assets} />
-            <RecoveryPanel assets={portfolio.assets} />
+            <ExitGuardianPanel assets={portfolio.assets} />
             <DCAPanel assets={portfolio.assets} />
           </div>
         </MobileSection>
@@ -177,8 +177,8 @@ export default function Dashboard() {
             <PortfolioAllocation assets={portfolio.assets} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4 items-start">
-          <RecoveryPanel assets={portfolio.assets} />
+        <div className="grid grid-cols-2 gap-4 items-stretch">
+          <ExitGuardianPanel assets={portfolio.assets} />
           <DCAPanel assets={portfolio.assets} />
         </div>
       </div>

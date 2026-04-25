@@ -6,17 +6,15 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, Calculator, CalendarDays, ShieldOff,
+  LayoutDashboard, CalendarDays,
   Settings, HelpCircle, Heart, Sun, Moon
 } from 'lucide-react';
 
 const nav = [
-  { href: '/dashboard',            label: 'Dashboard',       icon: LayoutDashboard },
-  { href: '/recovery-calculator',  label: 'Recovery Panel',  icon: Calculator },
-  { href: '/dca-planner',          label: 'DCA Planner',     icon: CalendarDays },
-  { href: '/exit-guardian',        label: 'Exit Guardian',   icon: ShieldOff },
-  { href: '/settings',             label: 'Settings',        icon: Settings },
-  { href: '/help',                 label: 'Help',            icon: HelpCircle },
+  { href: '/dashboard',   label: 'Dashboard',  icon: LayoutDashboard },
+  { href: '/dca-planner', label: 'DCA Planner', icon: CalendarDays },
+  { href: '/settings',    label: 'Settings',    icon: Settings },
+  { href: '/help',        label: 'Help',        icon: HelpCircle },
 ];
 
 export default function Sidebar() {
