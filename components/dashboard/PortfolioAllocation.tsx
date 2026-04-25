@@ -76,6 +76,15 @@ export default function PortfolioAllocation({ assets }: PortfolioAllocationProps
             const move = calcBreakevenMove(asset);
             const isShort = asset.direction === 'short';
             const inProfit = pnl.unrealizedPnL >= 0;
+            const lossPct = Math.abs(Math.min(pnl.unrealizedPnLPercent, 0));
+
+            // Progressive colour based on depth of loss / size of profit
+            const barColor = inProfit
+              ? '#22c55e'                          // green — in profit
+              : lossPct < 10  ? '#eab308'          // yellow — small dip, easy to recover
+              : lossPct < 25  ? '#f97316'          // orange — meaningful loss
+              :                 '#ef4444';          // red — deep loss, hard to recover
+
             // Progress bar: how close current price is to entry
             const progress = asset.entryPrice > 0
               ? Math.min(100, Math.max(0, (asset.currentPrice / asset.entryPrice) * 100))
@@ -97,18 +106,18 @@ export default function PortfolioAllocation({ assets }: PortfolioAllocationProps
                     </span>
                   </div>
                   {/* ROI % */}
-                  <span className={`text-xs font-bold tabular-nums ${inProfit ? 'text-emerald-500' : 'text-red-500'}`}>
+                  <span className="text-xs font-bold tabular-nums" style={{ color: barColor }}>
                     {fmtPercent(pnl.unrealizedPnLPercent)}
                   </span>
                   {/* Breakeven need */}
-                  <span className={`text-[10px] font-semibold whitespace-nowrap ${inProfit ? 'text-emerald-500' : 'text-orange-500'}`}>
+                  <span className="text-[10px] font-semibold whitespace-nowrap" style={{ color: barColor }}>
                     {inProfit ? '✓ Profit' : `${isShort ? '↓' : '↑'}${Math.abs(move).toFixed(1)}% to Breakeven`}
                   </span>
                 </div>
                 {/* Progress bar */}
                 <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
                   <div className="h-full rounded-full transition-all"
-                    style={{ width: `${progress}%`, background: inProfit ? '#22c55e' : '#ef4444' }} />
+                    style={{ width: `${progress}%`, background: barColor }} />
                 </div>
                 <div className="flex justify-between text-[9px] t-3 mt-0.5">
                   <span>Entry {fmtCurrency(asset.entryPrice)}</span>
