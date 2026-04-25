@@ -1,203 +1,171 @@
 'use client';
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronDown, BarChart2 } from 'lucide-react';
-import Header from '@/components/layout/Header';
-import StatsCards from '@/components/dashboard/StatsCards';
-import PortfolioTable from '@/components/dashboard/PortfolioTable';
-import PortfolioAllocation from '@/components/dashboard/PortfolioAllocation';
-import AssetModal from '@/components/modals/AssetModal';
-import { CryptoAsset, Portfolio, Prefs } from '@/lib/types';
-import { loadPortfolio, savePortfolio, loadPrefs } from '@/lib/storage';
-import { calcPortfolioStats, calcRiskScore, fmtCurrency } from '@/lib/calculations';
+import { useState, useEffect, useCallback } from 'react';
+import { RefreshCw, Settings, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
+import { Portfolio, PairInfo } from '@/lib/types';
+import { loadPortfolio, savePortfolio } from '@/lib/storage';
+import { calcPairInfo, calcStrategies, calcEquity } from '@/lib/calculations';
 import { fetchPrices } from '@/lib/coingecko';
+import AccountBar from '@/components/dashboard/AccountBar';
+import PositionPairCard from '@/components/dashboard/PositionPairCard';
+import DeltaNeutralExplainer from '@/components/dashboard/DeltaNeutralExplainer';
+import RecoveryStrategies from '@/components/dashboard/RecoveryStrategies';
+import PriceSimulator from '@/components/dashboard/PriceSimulator';
 
-/* ── Mobile collapsible section ──────────────────────────────── */
-function MobileSection({
-  title, preview, icon: Icon, iconColor, iconBg, open, onToggle, children,
-}: {
-  title: string; preview: string;
-  icon: React.ElementType; iconColor: string; iconBg: string;
-  open: boolean; onToggle: () => void; children: React.ReactNode;
-}) {
-  if (open) {
-    return (
-      <div>
-        {children}
-        <button
-          onClick={onToggle}
-          className="mt-2 w-full py-2 rounded-xl flex items-center justify-center gap-1.5 text-xs font-medium t-3 transition-colors hover:t-1"
-          style={{ border: '1px solid var(--border)', background: 'var(--surface-deep)' }}
-        >
-          <ChevronDown size={13} style={{ transform: 'rotate(180deg)' }} />
-          Collapse
-        </button>
-      </div>
-    );
+// ─── Group positions into long+short pairs by symbol ──────────────────────────
+function buildPairs(portfolio: Portfolio): PairInfo[] {
+  const pairs: PairInfo[] = [];
+  const symbols = [...new Set(portfolio.positions.map(p => p.symbol))];
+
+  for (const sym of symbols) {
+    const longs  = portfolio.positions.filter(p => p.symbol === sym && p.direction === 'long');
+    const shorts = portfolio.positions.filter(p => p.symbol === sym && p.direction === 'short');
+    if (longs.length > 0 && shorts.length > 0) {
+      pairs.push(calcPairInfo(longs[0], shorts[0]));
+    }
   }
-
-  return (
-    <button
-      onClick={onToggle}
-      className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-left transition-colors"
-      style={{ border: '1px solid var(--border)', background: 'var(--surface)' }}
-    >
-      <div className={`w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 ${iconBg}`}>
-        <Icon size={16} className={iconColor} />
-      </div>
-      <div className="flex-1 min-w-0">
-        <div className="text-sm font-semibold t-1 leading-tight">{title}</div>
-        <div className="text-xs t-3 truncate mt-0.5">{preview}</div>
-      </div>
-      <ChevronDown size={15} className="t-3 flex-shrink-0" />
-    </button>
-  );
+  return pairs;
 }
 
-/* ── Page ────────────────────────────────────────────────────── */
+// ─── Page ─────────────────────────────────────────────────────────────────────
 export default function Dashboard() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [prefs, setPrefs] = useState<Prefs>({ show24hChange: true, showScenarioOutlook: true, showConcentrationRisk: true });
-  const [modalOpen, setModalOpen] = useState(false);
-  const [editAsset, setEditAsset] = useState<CryptoAsset | null>(null);
   const [refreshing, setRefreshing] = useState(false);
-  const [lastUpdated, setLastUpdated] = useState<string>(new Date().toISOString());
-  const [portfolioOpen, setPortfolioOpen] = useState(false);
-  const [savedFlash, setSavedFlash] = useState(false);
-  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isFirstLoad = useRef(true);
+  const [lastUpdated, setLastUpdated] = useState('');
 
+  // Load on mount
   useEffect(() => {
     const p = loadPortfolio();
     setPortfolio(p);
     setLastUpdated(p.lastUpdated);
-    setPrefs(loadPrefs());
   }, []);
 
-  useEffect(() => {
-    if (!portfolio) return;
-    savePortfolio(portfolio);
-    if (isFirstLoad.current) { isFirstLoad.current = false; return; }
-    setSavedFlash(true);
-    if (saveTimer.current) clearTimeout(saveTimer.current);
-    saveTimer.current = setTimeout(() => setSavedFlash(false), 1800);
-  }, [portfolio]);
-
+  // Refresh prices from CoinGecko
   const refreshPrices = useCallback(async () => {
     if (!portfolio) return;
     setRefreshing(true);
     try {
-      const ids = portfolio.assets.map((a) => a.coinGeckoId);
+      const ids = [...new Set(portfolio.positions.map(p => p.coinGeckoId))];
       const prices = await fetchPrices(ids);
-      setPortfolio((prev) => {
+      setPortfolio(prev => {
         if (!prev) return prev;
-        return {
+        const updated: Portfolio = {
           ...prev,
-          assets: prev.assets.map((a) => ({
-            ...a,
-            currentPrice: prices[a.coinGeckoId]?.usd ?? a.currentPrice,
-            change24h: prices[a.coinGeckoId]?.usd_24h_change ?? a.change24h,
+          positions: prev.positions.map(pos => ({
+            ...pos,
+            currentPrice: prices[pos.coinGeckoId]?.usd ?? pos.currentPrice,
           })),
+          lastUpdated: new Date().toISOString(),
         };
+        savePortfolio(updated);
+        return updated;
       });
       setLastUpdated(new Date().toISOString());
-    } catch { /* keep existing */ }
+    } catch { /* keep stale */ }
     finally { setRefreshing(false); }
   }, [portfolio]);
 
+  // Auto-refresh every 60 s
   useEffect(() => {
-    const interval = setInterval(refreshPrices, 60_000);
-    return () => clearInterval(interval);
-  }, [refreshPrices]);
+    refreshPrices();
+    const id = setInterval(refreshPrices, 60_000);
+    return () => clearInterval(id);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   if (!portfolio) {
-    return <div className="flex items-center justify-center min-h-screen"><div className="t-3 text-sm">Loading...</div></div>;
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="t-3 text-sm animate-pulse">Loading positions…</div>
+      </div>
+    );
   }
 
-  const stats = calcPortfolioStats(portfolio.assets);
-  const risk  = calcRiskScore(portfolio.assets, portfolio.crossMarginBalance);
+  const pairs = buildPairs(portfolio);
+  const { equity } = calcEquity(portfolio.account, portfolio.positions);
+  const strategies = pairs.length > 0 ? calcStrategies(pairs, portfolio.account) : [];
 
-  const handleAddAsset    = () => { setEditAsset(null); setModalOpen(true); };
-  const handleEditAsset   = (a: CryptoAsset) => { setEditAsset(a); setModalOpen(true); };
-  const handleDeleteAsset = (id: string) => setPortfolio((p) => p ? { ...p, assets: p.assets.filter((a) => a.id !== id) } : p);
-  const handleSaveAsset   = (asset: CryptoAsset) => setPortfolio((p) => {
-    if (!p) return p;
-    const exists = p.assets.find((a) => a.id === asset.id);
-    return { ...p, assets: exists ? p.assets.map((a) => a.id === asset.id ? asset : a) : [...p.assets, asset] };
-  });
-
-  const deepLoss = stats.totalInvested > 0 && stats.totalUnrealizedPnL < 0 &&
-    Math.abs(stats.totalUnrealizedPnL / stats.totalInvested) >= 0.3;
-
-  const portfolioTable = (
-    <PortfolioTable assets={portfolio.assets} onAdd={handleAddAsset} onEdit={handleEditAsset} onDelete={handleDeleteAsset} />
-  );
+  const fmtTime = (iso: string) => {
+    try {
+      return new Date(iso).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } catch { return '—'; }
+  };
 
   return (
-    <>
-      <Header
-        title="Dashboard"
-        subtitle="Portfolio overview"
-        lastUpdated={lastUpdated}
-        onRefresh={refreshPrices}
-        refreshing={refreshing}
-        savedFlash={savedFlash}
-      />
+    <div className="space-y-4">
+      {/* ── Top bar ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-bold t-1">Recovery Dashboard</h1>
+          <p className="text-[11px] t-3">Last updated {fmtTime(lastUpdated)}</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <button onClick={refreshPrices} disabled={refreshing}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium t-2 hover:t-1 transition-colors"
+            style={{ border: '1px solid var(--border)', background: 'var(--surface-deep)' }}>
+            <RefreshCw size={12} className={refreshing ? 'animate-spin' : ''} />
+            Refresh
+          </button>
+          <Link href="/settings"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-medium t-2 hover:t-1 transition-colors"
+            style={{ border: '1px solid var(--border)', background: 'var(--surface-deep)' }}>
+            <Settings size={12} />
+            Edit Positions
+          </Link>
+        </div>
+      </div>
 
-      {deepLoss && (
-        <div className="mb-3 px-4 py-3 rounded-xl flex items-center gap-3"
-          style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
-          <span className="text-red-500 text-base flex-shrink-0">⚠</span>
-          <div className="flex-1 min-w-0">
-            <span className="text-sm font-semibold text-red-500">Portfolio in deep drawdown</span>
-            <span className="text-xs t-3 ml-2">
-              Down {Math.abs((stats.totalUnrealizedPnL / stats.totalInvested) * 100).toFixed(0)}% · Consider averaging down to lower your entry
-            </span>
+      {/* ── Account status ── */}
+      <AccountBar account={portfolio.account} positions={portfolio.positions} />
+
+      {/* ── No pairs warning ── */}
+      {pairs.length === 0 && (
+        <div className="glass rounded-2xl p-6 text-center">
+          <AlertTriangle size={24} className="text-orange-400 mx-auto mb-2" />
+          <div className="font-semibold t-1 mb-1">No delta-neutral pairs detected</div>
+          <div className="text-sm t-3 mb-3">
+            Add both a LONG and SHORT position for the same asset to see pair analysis.
           </div>
+          <Link href="/settings"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-colors"
+            style={{ background: 'rgba(249,115,22,0.12)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316' }}>
+            <Settings size={14} />
+            Configure Positions
+          </Link>
         </div>
       )}
 
-      <StatsCards
-        stats={stats}
-        risk={risk}
-        assets={portfolio.assets}
-        assetCount={portfolio.assets.length}
-        show24hChange={prefs.show24hChange}
-        crossMarginBalance={portfolio.crossMarginBalance ?? 0}
-        onCrossMarginChange={(v) => setPortfolio(p => p ? { ...p, crossMarginBalance: v } : p)}
-      />
-
-      {/* ── MOBILE layout ── */}
-      <div className="md:hidden mt-3">
-        <MobileSection
-          title="Portfolio"
-          preview={`${fmtCurrency(stats.totalValue)} · ${portfolio.assets.length} assets`}
-          icon={BarChart2} iconColor="text-blue-500" iconBg="bg-blue-500/10"
-          open={portfolioOpen} onToggle={() => setPortfolioOpen((v) => !v)}
-        >
-          <div className="space-y-3">
-            {portfolioTable}
-            <PortfolioAllocation assets={portfolio.assets} />
+      {pairs.length > 0 && (
+        <>
+          {/* ── Position pairs ── */}
+          <div>
+            <h2 className="text-sm font-semibold t-2 mb-2">Position Pairs</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {pairs.map(pair => (
+                <PositionPairCard key={pair.symbol} pair={pair} />
+              ))}
+            </div>
           </div>
-        </MobileSection>
-      </div>
 
-      {/* ── DESKTOP layout ── */}
-      <div className="hidden md:block mt-4">
-        <div className="grid grid-cols-3 gap-4" style={{ alignItems: 'stretch' }}>
-          <div className="col-span-2 flex flex-col">{portfolioTable}</div>
-          <div className="col-span-1 flex flex-col min-h-0">
-            <PortfolioAllocation assets={portfolio.assets} />
-          </div>
-        </div>
-      </div>
+          {/* ── Why you're locked ── */}
+          <DeltaNeutralExplainer pairs={pairs} />
 
-      <AssetModal
-        open={modalOpen}
-        asset={editAsset}
-        existingAssets={portfolio.assets}
-        onClose={() => { setModalOpen(false); setEditAsset(null); }}
-        onSave={handleSaveAsset}
-      />
-    </>
+          {/* ── Recovery strategies ── */}
+          <RecoveryStrategies
+            strategies={strategies}
+            currentEquity={equity}
+            walletBalance={portfolio.account.walletBalance}
+          />
+
+          {/* ── Price simulator ── */}
+          <PriceSimulator pairs={pairs} account={portfolio.account} />
+        </>
+      )}
+
+      {/* ── Disclaimer ── */}
+      <div className="text-[10px] t-3 text-center pb-2">
+        Educational tool only — not financial advice. Always verify with your exchange before trading.
+      </div>
+    </div>
   );
 }

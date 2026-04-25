@@ -19,7 +19,29 @@
  *   - Price below 20 EMA AND TSI < 0
  */
 
-import { OHLCCandle, HedgeSignalResult } from './types';
+import { OHLCCandle } from './types';
+
+// Local type — formerly in types.ts
+type HedgeSignalType = 'UNLOCK' | 'WATCH' | 'HOLD' | 'RELOCK';
+type SignalConfidence = 'High' | 'Moderate' | 'Weak';
+interface HedgeSignalResult {
+  signal: HedgeSignalType;
+  confidence: SignalConfidence;
+  latestTSI: number;
+  latestSignalLine: number;
+  atrRatio: number;
+  priceVsEMA: 'above' | 'below' | 'unknown';
+  wasOversold: boolean;
+  recentCrossUp: boolean;
+  recentCrossDown: boolean;
+  sparkline: Array<{ tsi: number; signal: number }>;
+  reasons: string[];
+  conditionsMet: number;
+  dataPoints: number;
+  insufficientData: boolean;
+}
+
+export type { HedgeSignalResult, HedgeSignalType, SignalConfidence };
 import { calcTSI, calcATR, calcEMA20 } from './indicators';
 
 export function calcHedgeSignal(

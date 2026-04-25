@@ -1,22 +1,97 @@
-export type StrategyMode = 'dca' | 'breakeven' | 'risk-reduction' | 'swing' | 'delta-neutral';
-export type RiskMode = 'conservative' | 'balanced' | 'aggressive';
-
-export interface CryptoAsset {
+// ─── Core position ────────────────────────────────────────────────────────────
+export interface Position {
   id: string;
   symbol: string;
-  name: string;
   coinGeckoId: string;
-  amount: number;
-  entryPrice: number;
-  currentPrice: number;
+  direction: 'long' | 'short';
+  size: number;          // e.g. 0.417 (BTC), 160 (SOL)
+  entryPrice: number;    // from exchange
+  currentPrice: number;  // updated from CoinGecko or manually
+  leverage: number;      // e.g. 100
   color: string;
-  change24h?: number;
-  direction?: 'long' | 'short';
-  capitalLeft?: number;
-  leverage?: number;
-  hedgeFor?: string; // id of the long position this short position hedges
 }
 
+// ─── Account ──────────────────────────────────────────────────────────────────
+export interface Account {
+  walletBalance: number;    // Bybit "Wallet Balance"
+  availableBalance: number; // Bybit "Available Balance"
+}
+
+// ─── Portfolio (persisted) ────────────────────────────────────────────────────
+export interface Portfolio {
+  positions: Position[];
+  account: Account;
+  lastUpdated: string;
+}
+
+// ─── P&L for a single position ────────────────────────────────────────────────
+export interface PosPnL {
+  id: string;
+  unrealizedPnL: number;   // USD
+  pnlPercent: number;      // % price move from entry (direction-adjusted)
+  roiPct: number;          // unrealizedPnL / initialMargin × 100
+  initialMargin: number;   // entryPrice × size / leverage
+  positionValue: number;   // currentPrice × size
+  costBasis: number;       // entryPrice × size
+}
+
+// ─── Paired long + short analysis ────────────────────────────────────────────
+export interface PairInfo {
+  symbol: string;
+  color: string;
+  coinGeckoId: string;
+  long: Position;
+  short: Position;
+  longPnL: PosPnL;
+  shortPnL: PosPnL;
+  /** CONSTANT regardless of price: size × (shortEntry − longEntry) */
+  lockedLoss: number;
+  /** % the long needs to RISE to reach its entry (break-even) */
+  longPctToBreakEven: number;
+  /** % the short needs to DROP to reach its entry (break-even), expressed as positive number */
+  shortPctToBreakEven: number;
+}
+
+// ─── Strategy ─────────────────────────────────────────────────────────────────
+export type StrategyId = 'bear' | 'bull' | 'exit';
+
+export interface PriceTarget {
+  symbol: string;
+  side: 'long' | 'short';
+  entryPrice: number;
+  currentPrice: number;
+  pctMove: number;   // positive = needs to rise, negative = needs to drop
+}
+
+export interface Strategy {
+  id: StrategyId;
+  name: string;
+  emoji: string;
+  tagline: string;
+  /** How much you lock in right now by closing selected legs (negative) */
+  immediateRealizedLoss: number;
+  /** Current unrealized on the legs you KEEP */
+  remainingCurrentPnL: number;
+  /** Equity after close + if remaining legs reach their entries (best case) */
+  bestCaseEquity: number;
+  /** Equity after close + if remaining legs hit their entries */
+  targets: PriceTarget[];
+  feasibility: 1 | 2 | 3 | 4 | 5;
+  isRecommended: boolean;
+  steps: string[];
+  risk: string;
+  upside: string;
+}
+
+// ─── Simulator ────────────────────────────────────────────────────────────────
+export interface SimResult {
+  symbol: string;
+  longPnL: number;
+  shortPnL: number;
+  pairPnL: number;
+}
+
+// ─── OHLCCandle (for chart util) ──────────────────────────────────────────────
 export interface OHLCCandle {
   timestamp: number;
   open: number;
@@ -25,152 +100,15 @@ export interface OHLCCandle {
   close: number;
 }
 
-export type HedgeSignalType = 'UNLOCK' | 'WATCH' | 'HOLD' | 'RELOCK';
-export type SignalConfidence = 'High' | 'Moderate' | 'Weak';
-
-export interface HedgeSignalResult {
-  signal: HedgeSignalType;
-  confidence: SignalConfidence;
-  latestTSI: number;
-  latestSignalLine: number;
-  atrRatio: number;
-  priceVsEMA: 'above' | 'below' | 'unknown';
-  wasOversold: boolean;
-  recentCrossUp: boolean;
-  recentCrossDown: boolean;
-  sparkline: Array<{ tsi: number; signal: number }>;
-  reasons: string[];
-  conditionsMet: number;
-  dataPoints: number;
-  insufficientData: boolean;
-}
-
-export interface Prefs {
-  show24hChange: boolean;
-  showScenarioOutlook: boolean;
-  showConcentrationRisk: boolean;
-}
-
-export interface Portfolio {
-  assets: CryptoAsset[];
-  strategy: StrategyMode;
-  riskMode: RiskMode;
-  hedgeRatio: number;
-  lastUpdated: string;
-  /** Total account equity in the cross-margin pool (e.g. USDT balance on the exchange) */
-  crossMarginBalance?: number;
-}
-
-export interface PortfolioStats {
-  totalValue: number;
-  totalInvested: number;
-  totalUnrealizedPnL: number;
-  totalUnrealizedPnLPercent: number;
-  avgEntryPrice: number;
-  breakevenValue: number;
-  change24h: number;
-  /** Cost basis of long positions only — used on Recovery page as "Originally Invested" */
-  longInvested: number;
-  /** Current market value of long positions only */
-  longValue: number;
-}
-
-export interface AssetPnL {
-  assetId: string;
-  unrealizedPnL: number;
-  unrealizedPnLPercent: number;
-  marketValue: number;
-  costBasis: number;
-}
-
-export interface RiskScore {
-  score: number;
-  level: string;
-  drawdownScore: number;
-  leverageScore: number;
-  liquidationScore: number;
-  leveragedPortfolioPct: number;   // % of portfolio value in leveraged positions
-  closestLiqDistPct: number | null; // distance to nearest liquidation price (negative = below current)
-  maxLeverage: number;             // highest leverage in use
-}
-
-export interface AllocationItem {
-  symbol: string;
-  name: string;
-  percent: number;
-  color: string;
-  value: number;
-}
-
-export interface DCAStage {
-  stage: number;
-  priceTarget: number;
-  percentFromCurrent: number;
-  label: string;
-}
-
-export interface RecommendedAction {
-  order: number;
-  title: string;
-  description: string;
-  type: 'hold' | 'dca' | 'hedge' | 'reduce' | 'reassess';
-}
-
-export interface StrategyResult {
-  mode: StrategyMode;
-  name: string;
-  description: string;
-  netExposureLabel: string;
-  netExposurePercent: number;
-  hedgeStatus: string;
-  longValue: number;
-  hedgeValue: number;
-  freezeZoneActive: boolean;
-  actions: RecommendedAction[];
-  dcaStages?: DCAStage[];
-}
-
-export interface ScenarioOutcome {
-  scenario: 'bull' | 'sideways' | 'bear';
-  name: string;
-  returnRangeLow: number;
-  returnRangeHigh: number;
-  recoveryTimeLow: string;
-  recoveryTimeHigh: string;
-  difficulty: 'Good' | 'Moderate' | 'Challenging';
-  color: string;
-  badgeColor: string;
-  icon: string;
-}
-
-export interface BehavioralWarning {
-  type: 'panic-selling' | 'overtrading' | 'over-averaging';
-  name: string;
-  level: 'Low' | 'Moderate' | 'High';
-  color: string;
-  icon: string;
-}
-
-export interface HedgeStatus {
-  ratio: number;
-  longValue: number;
-  hedgeValue: number;
-  netExposurePercent: number;
-  netExposureLabel: string;
-  freezeZoneActive: boolean;
-}
-
+// ─── Supported coins ──────────────────────────────────────────────────────────
 export const SUPPORTED_COINS = [
-  { symbol: 'BTC', name: 'Bitcoin', coinGeckoId: 'bitcoin', color: '#f97316' },
-  { symbol: 'ETH', name: 'Ethereum', coinGeckoId: 'ethereum', color: '#6366f1' },
-  { symbol: 'SOL', name: 'Solana', coinGeckoId: 'solana', color: '#22c55e' },
-  { symbol: 'BNB', name: 'BNB', coinGeckoId: 'binancecoin', color: '#eab308' },
-  { symbol: 'ADA', name: 'Cardano', coinGeckoId: 'cardano', color: '#3b82f6' },
-  { symbol: 'AVAX', name: 'Avalanche', coinGeckoId: 'avalanche-2', color: '#ef4444' },
-  { symbol: 'DOT', name: 'Polkadot', coinGeckoId: 'polkadot', color: '#ec4899' },
-  { symbol: 'MATIC', name: 'Polygon', coinGeckoId: 'matic-network', color: '#8b5cf6' },
-  { symbol: 'LINK', name: 'Chainlink', coinGeckoId: 'chainlink', color: '#06b6d4' },
-  { symbol: 'DOGE', name: 'Dogecoin', coinGeckoId: 'dogecoin', color: '#ca8a04' },
-  { symbol: 'XRP', name: 'XRP', coinGeckoId: 'ripple', color: '#0ea5e9' },
-  { symbol: 'LTC', name: 'Litecoin', coinGeckoId: 'litecoin', color: '#94a3b8' },
+  { symbol: 'BTC',  name: 'Bitcoin',    coinGeckoId: 'bitcoin',      color: '#f97316' },
+  { symbol: 'ETH',  name: 'Ethereum',   coinGeckoId: 'ethereum',     color: '#6366f1' },
+  { symbol: 'SOL',  name: 'Solana',     coinGeckoId: 'solana',       color: '#22c55e' },
+  { symbol: 'BNB',  name: 'BNB',        coinGeckoId: 'binancecoin',  color: '#eab308' },
+  { symbol: 'XRP',  name: 'XRP',        coinGeckoId: 'ripple',       color: '#0ea5e9' },
+  { symbol: 'ADA',  name: 'Cardano',    coinGeckoId: 'cardano',      color: '#3b82f6' },
+  { symbol: 'AVAX', name: 'Avalanche',  coinGeckoId: 'avalanche-2',  color: '#ef4444' },
+  { symbol: 'DOGE', name: 'Dogecoin',   coinGeckoId: 'dogecoin',     color: '#ca8a04' },
+  { symbol: 'LINK', name: 'Chainlink',  coinGeckoId: 'chainlink',    color: '#06b6d4' },
 ];
