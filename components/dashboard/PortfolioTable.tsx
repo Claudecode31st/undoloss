@@ -16,11 +16,10 @@ const fmtK = (v: number) => v >= 1000 ? `$${(v / 1000).toFixed(1)}K` : `$${v.toF
 export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: PortfolioTableProps) {
   const totalPnL = assets.reduce((sum, a) => sum + calcAssetPnL(a).unrealizedPnL, 0);
   const totalInvested = assets.reduce((sum, a) => sum + a.entryPrice * a.amount, 0);
-  const totalValue = assets.reduce((sum, a) => sum + calcAssetPnL(a).marketValue, 0);
   const totalPnLPct = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
 
   return (
-    <GlassCard className="overflow-hidden h-full flex flex-col">
+    <GlassCard className="overflow-hidden h-full">
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid var(--border)' }}>
@@ -89,7 +88,7 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
       </div>
 
       {/* ── Desktop card-row list ── */}
-      <div className="hidden md:flex md:flex-col flex-1 min-h-0 px-4 py-3 space-y-2">
+      <div className="hidden md:flex md:flex-col flex-1 min-h-0 px-4 py-3 space-y-2 justify-center">
         {assets.length === 0 && (
           <div className="text-center py-10 t-3 text-sm">No assets yet. Click "Add Asset" to get started.</div>
         )}
@@ -219,30 +218,6 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
         })}
 
       </div>
-
-      {/* ── Summary footer ── */}
-      {assets.length > 0 && (
-        <div className="mt-auto px-4 py-3 hidden md:flex items-center justify-between gap-4"
-          style={{ borderTop: '1px solid var(--border)' }}>
-          <div className="flex-1">
-            <div className="text-[10px] t-3 uppercase tracking-wide font-medium mb-0.5">Current Value</div>
-            <div className="text-[13px] font-bold t-1">{fmtCurrency(totalValue)}</div>
-          </div>
-          <div className="flex-1">
-            <div className="text-[10px] t-3 uppercase tracking-wide font-medium mb-0.5">Invested</div>
-            <div className="text-[13px] font-semibold t-2">{fmtCurrency(totalInvested)}</div>
-          </div>
-          <div className="flex-1 text-right">
-            <div className="text-[10px] t-3 uppercase tracking-wide font-medium mb-0.5">Total P/L</div>
-            <div className={`text-[13px] font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-              {fmtCurrency(totalPnL)}
-              <span className={`text-[11px] ml-1.5 ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                {totalPnLPct >= 0 ? '+' : ''}{totalPnLPct.toFixed(1)}%
-              </span>
-            </div>
-          </div>
-        </div>
-      )}
 
     </GlassCard>
   );
