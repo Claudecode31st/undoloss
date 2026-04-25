@@ -6,12 +6,13 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard, ShieldCheck,
+  LayoutDashboard, ShieldCheck, TrendingUp,
   Settings, HelpCircle, Coffee, Sun, Moon
 } from 'lucide-react';
 
 const nav = [
   { href: '/dashboard', label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/recovery',  label: 'Recovery',     icon: TrendingUp },
   { href: '/hedge',     label: 'Hedge Manager', icon: ShieldCheck },
   { href: '/settings',  label: 'Settings',     icon: Settings },
   { href: '/help',      label: 'Help',         icon: HelpCircle },

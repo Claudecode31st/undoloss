@@ -66,6 +66,21 @@ export function generateId(): string {
   return Math.random().toString(36).slice(2, 10);
 }
 
+const RECOVERY_KEY = 'ccrs_recovery';
+
+export function loadRecoveryTarget(): number | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(RECOVERY_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+export function saveRecoveryTarget(target: number): void {
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(RECOVERY_KEY, JSON.stringify(target)); } catch { /* ignore */ }
+}
+
 const PREFS_KEY = 'ccrs_prefs';
 const DEFAULT_PREFS: Prefs = {
   show24hChange: true,
