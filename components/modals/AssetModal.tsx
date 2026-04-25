@@ -81,8 +81,20 @@ export default function AssetModal({ open, asset, existingAssets = [], onClose, 
     leverage: leverageNum,
   };
   const marginCall = leverageNum > 1 ? calcMarginCallPrice(previewAsset) : null;
-  const distToMarginCall = marginCall && currentNum > 0
-    ? ((marginCall - currentNum) / currentNum) * 100
+
+  // Is the current price already past the isolated-margin liq trigger?
+  // Long: liq is below entry — if current < liqPrice, already crossed it
+  // Short: liq is above entry — if current > liqPrice, already crossed it
+  const alreadyPastIsolatedLiq = marginCall !== null && currentNum > 0 && (
+    (direction === 'long'  && currentNum <= marginCall) ||
+    (direction === 'short' && currentNum >= marginCall)
+  );
+
+  // How far current price still needs to move to hit isolated liq (only meaningful when not past it)
+  const distToMarginCall = marginCall && currentNum > 0 && !alreadyPastIsolatedLiq
+    ? direction === 'long'
+      ? ((currentNum - marginCall) / currentNum) * 100   // current above liq → positive = safe distance
+      : ((marginCall - currentNum) / currentNum) * 100   // current below liq → positive = safe distance
     : null;
   // Initial margin required for this position
   const initialMargin = leverageNum > 1 && entryNum > 0 && previewAsset.amount > 0
@@ -275,16 +287,29 @@ export default function AssetModal({ open, asset, existingAssets = [], onClose, 
                 </div>
               </div>
               {/* Liq warning */}
-              {marginCall !== null && currentNum > 0 && distToMarginCall !== null && (
-                <div className="px-3 py-2 border-t flex items-start gap-2" style={{ borderColor: 'var(--border)', background: 'rgba(239,68,68,0.06)' }}>
+              {marginCall !== null && currentNum > 0 && (
+                <div className="px-3 py-2 border-t flex items-start gap-2" style={{
+                  borderColor: 'var(--border)',
+                  background: alreadyPastIsolatedLiq ? 'rgba(239,68,68,0.1)' : 'rgba(239,68,68,0.06)',
+                }}>
                   <AlertTriangle size={11} className="text-red-500 flex-shrink-0 mt-0.5" />
-                  <div className="text-[10px] t-3 leading-snug">
-                    <span className="text-red-400 font-semibold">Isolated margin liq</span>
-                    {' '}at {fmtCurrency(marginCall)} —{' '}
-                    {direction === 'long'
-                      ? `price needs to drop ${Math.abs(distToMarginCall).toFixed(1)}% from current`
-                      : `price needs to rise ${Math.abs(distToMarginCall).toFixed(1)}% from current`}.
-                    {' '}<span className="t-3">Cross-margin liq will be further away (uses full account balance as buffer).</span>
+                  <div className="text-[10px] leading-snug">
+                    {alreadyPastIsolatedLiq ? (
+                      <>
+                        <span className="text-red-400 font-semibold">Current price is past isolated liq ({fmtCurrency(marginCall, 0)})</span>
+                        <span className="t-3"> — on isolated margin this position would be liquidated. You must be on </span>
+                        <span className="text-orange-400 font-semibold">cross-margin</span>
+                        <span className="t-3">, where the full account balance acts as buffer and extends your liq further.</span>
+                      </>
+                    ) : (
+                      <>
+                        <span className="text-red-400 font-semibold">Isolated margin liq</span>
+                        <span className="t-3"> at {fmtCurrency(marginCall)} — price needs to{' '}
+                          {direction === 'long' ? 'drop' : 'rise'} {Math.abs(distToMarginCall ?? 0).toFixed(1)}% from current to trigger.{' '}
+                          Cross-margin liq will be further away (full account balance as buffer).
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               )}
