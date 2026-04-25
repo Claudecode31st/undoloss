@@ -58,10 +58,7 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         <div className={`text-xl font-bold ${pnlPositive ? 'text-emerald-500' : 'text-red-500'}`}>
           {fmtCurrency(stats.totalUnrealizedPnL)}
         </div>
-        <div className={`text-xs mt-1 font-medium ${pnlPositive ? 'text-emerald-500' : 'text-red-500'}`}>
-          {fmtPercent(stats.totalUnrealizedPnLPercent)}
-        </div>
-        <div className={`text-xs mt-1 ${pnlPositive ? 'text-emerald-500' : 'text-orange-500'}`}>
+        <div className={`text-xs mt-1 font-medium ${pnlPositive ? 'text-emerald-500' : 'text-orange-500'}`}>
           {pnlPositive
             ? `✓ +${roiPct.toFixed(1)}% ROI · in profit`
             : `Need +${breakevenMove.toFixed(1)}% to recover`
