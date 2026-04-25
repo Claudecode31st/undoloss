@@ -90,15 +90,29 @@ export default function AverageDownDetail({ assets }: Props) {
               style={{ background: `linear-gradient(to right, #f97316 ${(monthlyBudget / 5000) * 100}%, var(--border-strong) ${(monthlyBudget / 5000) * 100}%)`, touchAction: 'none' }} />
             <span className="text-sm font-bold text-orange-500 whitespace-nowrap w-16 text-right">{fmtCurrency(monthlyBudget, 0)}/mo</span>
           </div>
-          {/* Summary chips */}
-          <div className="flex items-center gap-2 ml-auto flex-wrap">
+
+          {/* Summary — grouped as one visual unit */}
+          <div className="flex items-center gap-2 ml-auto">
             <span className="text-[11px] t-3">Deploy <span className="font-bold text-orange-500">{fmtCurrency(totalDeployed, 0)}</span></span>
-            <span className="text-[11px] t-3">·</span>
-            <span className="text-[11px] t-3">BE now <span className={`font-bold ${holdBE > 0 ? 'text-red-500' : 'text-emerald-500'}`}>{holdBE > 0 ? `+${holdBE.toFixed(1)}%` : '✓'}</span></span>
-            <span className="text-[11px] t-3">→</span>
-            <span className="text-[11px] t-3">after <span className="font-bold text-emerald-500">{afterBE > 0 ? `+${afterBE.toFixed(1)}%` : '✓'}</span></span>
+            <div className="w-px h-4 flex-shrink-0" style={{ background: 'var(--border)' }} />
+            {/* Breakeven before → after grouped in one pill */}
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+              <div className="text-center">
+                <div className="text-[9px] t-3 leading-none mb-0.5">BE now</div>
+                <div className={`text-[11px] font-bold leading-none ${holdBE > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                  {holdBE > 0 ? `+${holdBE.toFixed(1)}%` : '✓'}
+                </div>
+              </div>
+              <span className="text-[10px] t-3">→</span>
+              <div className="text-center">
+                <div className="text-[9px] t-3 leading-none mb-0.5">after</div>
+                <div className="text-[11px] font-bold leading-none text-emerald-500">
+                  {afterBE > 0 ? `+${afterBE.toFixed(1)}%` : '✓'}
+                </div>
+              </div>
+            </div>
             {ppSaved > 0.1 && (
-              <span className="text-[10px] font-bold text-emerald-500 px-1.5 py-0.5 rounded-full"
+              <span className="text-[10px] font-bold text-emerald-500 px-1.5 py-1 rounded-lg"
                 style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}>
                 −{ppSaved.toFixed(1)}pp saved
               </span>
@@ -117,20 +131,26 @@ export default function AverageDownDetail({ assets }: Props) {
             <div className="text-[11px] t-3 mt-0.5">{months}-month average-down impact per position</div>
           </div>
 
-          {/* Column labels */}
-          <div className="flex items-center gap-2 px-4 py-1.5 flex-shrink-0">
+          {/* Column labels — with now→after hint on the paired columns */}
+          <div className="flex items-center gap-2 px-4 py-1.5 flex-shrink-0" style={{ borderBottom: '1px solid var(--border)' }}>
             <div className="w-6 flex-shrink-0" />
             <div className="flex-1 min-w-0 text-[10px] t-3 font-medium uppercase tracking-wide">Asset</div>
             <div className="w-16 flex-shrink-0 text-[10px] t-3 font-medium uppercase tracking-wide">Down</div>
             <div className="w-24 flex-shrink-0 text-[10px] t-3 font-medium uppercase tracking-wide">Budget</div>
-            <div className="w-36 flex-shrink-0 text-[10px] t-3 font-medium uppercase tracking-wide">Avg Entry</div>
-            <div className="w-28 flex-shrink-0 text-[10px] t-3 font-medium uppercase tracking-wide text-right">Breakeven</div>
+            <div className="w-36 flex-shrink-0">
+              <div className="text-[10px] t-3 font-medium uppercase tracking-wide">Avg Entry</div>
+              <div className="text-[9px] t-3 opacity-60">now → after</div>
+            </div>
+            <div className="w-28 flex-shrink-0 text-right">
+              <div className="text-[10px] t-3 font-medium uppercase tracking-wide">Breakeven</div>
+              <div className="text-[9px] t-3 opacity-60">now → after</div>
+            </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-3 pb-3 space-y-1.5">
+          <div className="flex-1 overflow-y-auto px-3 pb-3 pt-2 space-y-1.5">
             {schedule.map(({ asset, mb, totalD, newAvg, gainBefore, gainAfter, improvement, coinsAdded, drawdownPct }) => (
               <div key={asset.id}
-                className="flex items-center gap-2 px-3 py-2 rounded-xl"
+                className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
                 style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
 
                 {/* Avatar */}
@@ -159,29 +179,32 @@ export default function AverageDownDetail({ assets }: Props) {
                   <div className="text-[10px] t-3">+{fmtNumber(coinsAdded, coinsAdded < 1 ? 3 : 1)} {asset.symbol}</div>
                 </div>
 
-                {/* Avg entry */}
+                {/* Avg Entry: now (dimmed) → after (bold green) */}
                 <div className="w-36 flex-shrink-0">
-                  <div className="flex items-center gap-1 text-[11px]">
-                    <span className="t-3">{fmtCurrency(asset.entryPrice)}</span>
-                    <span className="t-3">→</span>
-                    <span className="font-bold text-emerald-500">{fmtCurrency(newAvg)}</span>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[11px] t-3 line-through opacity-50">{fmtCurrency(asset.entryPrice)}</span>
+                    <span className="text-[10px] t-3">→</span>
+                    <span className="text-[12px] font-bold text-emerald-500">{fmtCurrency(newAvg)}</span>
                   </div>
                   {improvement > 0.1 && (
-                    <div className="text-[10px] font-semibold text-emerald-500">−{improvement.toFixed(1)}pp easier</div>
+                    <span className="inline-block text-[9px] font-bold text-emerald-500 px-1.5 py-0.5 rounded-full mt-0.5"
+                      style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                      −{improvement.toFixed(1)}pp easier
+                    </span>
                   )}
                 </div>
 
-                {/* Breakeven */}
-                <div className="w-28 flex-shrink-0 text-right">
-                  <div className="flex items-center justify-end gap-1 text-[11px]">
-                    <span className={gainBefore > 0 ? 'text-red-500 font-medium' : 'text-emerald-500'}>
-                      {gainBefore > 0 ? `+${gainBefore.toFixed(1)}%` : '✓'}
-                    </span>
-                    <span className="t-3">→</span>
-                    <span className={`font-bold ${gainAfter > 0 ? 'text-emerald-600' : 'text-emerald-500'}`}>
-                      {gainAfter > 0 ? `+${gainAfter.toFixed(1)}%` : '✓'}
-                    </span>
-                  </div>
+                {/* Breakeven: now (red pill) → after (green pill) */}
+                <div className="w-28 flex-shrink-0 flex items-center justify-end gap-1">
+                  <span className={`text-[11px] px-1.5 py-0.5 rounded-md font-semibold ${gainBefore > 0 ? 'text-red-500' : 'text-emerald-500'}`}
+                    style={{ background: gainBefore > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)' }}>
+                    {gainBefore > 0 ? `+${gainBefore.toFixed(1)}%` : '✓'}
+                  </span>
+                  <span className="text-[10px] t-3">→</span>
+                  <span className={`text-[11px] px-1.5 py-0.5 rounded-md font-bold ${gainAfter > 0 ? 'text-emerald-600' : 'text-emerald-500'}`}
+                    style={{ background: gainAfter > 0 ? 'rgba(34,197,94,0.12)' : 'rgba(34,197,94,0.12)' }}>
+                    {gainAfter > 0 ? `+${gainAfter.toFixed(1)}%` : '✓'}
+                  </span>
                 </div>
               </div>
             ))}
@@ -218,11 +241,20 @@ export default function AverageDownDetail({ assets }: Props) {
                     </td>
                     {monthly.map((m) => (
                       <td key={m.month} className="px-2 py-1.5">
-                        <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-                          <div className="text-[11px] font-bold t-1">{fmtCurrency(m.buy, 0)}</div>
-                          <div className="text-[9px] t-3">avg {fmtCurrency(m.avgEntry)}</div>
-                          <div className={`text-[9px] font-semibold ${m.gainNeeded > 0 ? 'text-orange-500' : 'text-emerald-500'}`}>
-                            {m.gainNeeded > 0 ? `+${m.gainNeeded.toFixed(1)}%` : '✓'}
+                        <div className="rounded-lg px-2 py-1.5 space-y-0.5" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+                          {/* Buy amount — primary */}
+                          <div className="text-[12px] font-bold t-1">{fmtCurrency(m.buy, 0)}</div>
+                          {/* Avg entry after this buy */}
+                          <div className="flex items-center gap-0.5">
+                            <span className="text-[8px] t-3 uppercase tracking-wide">avg entry</span>
+                            <span className="text-[9px] font-semibold t-2">{fmtCurrency(m.avgEntry)}</span>
+                          </div>
+                          {/* Breakeven % remaining */}
+                          <div className="flex items-center gap-0.5">
+                            <span className="text-[8px] t-3 uppercase tracking-wide">breakeven</span>
+                            <span className={`text-[9px] font-bold ${m.gainNeeded > 0 ? 'text-orange-500' : 'text-emerald-500'}`}>
+                              {m.gainNeeded > 0 ? `+${m.gainNeeded.toFixed(1)}%` : '✓'}
+                            </span>
                           </div>
                         </div>
                       </td>
@@ -235,7 +267,7 @@ export default function AverageDownDetail({ assets }: Props) {
                   {Array.from({ length: months }, (_, i) => (
                     <td key={i} className="px-2 py-1.5">
                       <div className="rounded-lg px-2 py-1.5" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-                        <div className="text-[11px] font-bold text-orange-500">{fmtCurrency(monthlyBudget, 0)}</div>
+                        <div className="text-[12px] font-bold text-orange-500">{fmtCurrency(monthlyBudget, 0)}</div>
                         <div className="text-[9px] t-3">cum. {fmtCurrency(monthlyBudget * (i + 1), 0)}</div>
                       </div>
                     </td>

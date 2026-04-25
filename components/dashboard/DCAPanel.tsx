@@ -94,20 +94,39 @@ export default function DCAPanel({ assets }: DCAPanelProps) {
         </div>
       </div>
 
-      {/* Summary stats row */}
-      <div className="grid grid-cols-4 gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-        {[
-          { label: 'Deploy',       value: fmtCurrency(totalDeployed, 0),         sub: `${months}mo total`,          color: 'text-orange-500' },
-          { label: 'BE now',       value: holdBE > 0 ? `+${holdBE.toFixed(1)}%` : '✓ Profit', sub: 'current',     color: holdBE > 0 ? 'text-red-500' : 'text-emerald-500' },
-          { label: 'After plan',   value: afterBE > 0 ? `+${afterBE.toFixed(1)}%` : '✓',      sub: 'new breakeven', color: 'text-emerald-500' },
-          { label: 'Saved',        value: ppSaved > 0 ? `−${ppSaved.toFixed(1)}pp` : '—',      sub: 'improvement',   color: ppSaved > 0.1 ? 'text-emerald-500' : 't-3' },
-        ].map((s) => (
-          <div key={s.label} className="rounded-xl px-2.5 py-2" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-            <div className="text-[9px] t-3 uppercase tracking-wide mb-0.5">{s.label}</div>
-            <div className={`text-[13px] font-bold leading-tight ${s.color}`}>{s.value}</div>
-            <div className="text-[9px] t-3 mt-0.5">{s.sub}</div>
+      {/* Summary stats — Deploy + Breakeven before→after grouped */}
+      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+        {/* Deploy */}
+        <div className="rounded-xl px-3 py-2 flex-shrink-0" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+          <div className="text-[9px] t-3 uppercase tracking-wide mb-0.5">Deploy</div>
+          <div className="text-[13px] font-bold text-orange-500">{fmtCurrency(totalDeployed, 0)}</div>
+          <div className="text-[9px] t-3">{months}mo total</div>
+        </div>
+        {/* Breakeven: now → after, visually grouped */}
+        <div className="flex-1 rounded-xl px-3 py-2 flex items-center gap-3" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+          <div className="text-[9px] t-3 uppercase tracking-wide flex-shrink-0">Breakeven</div>
+          <div className="flex items-center gap-2 flex-1">
+            <div className="text-center">
+              <div className="text-[9px] t-3 mb-0.5">now</div>
+              <div className={`text-[13px] font-bold ${holdBE > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                {holdBE > 0 ? `+${holdBE.toFixed(1)}%` : '✓'}
+              </div>
+            </div>
+            <span className="text-[12px] t-3">→</span>
+            <div className="text-center">
+              <div className="text-[9px] t-3 mb-0.5">after plan</div>
+              <div className="text-[13px] font-bold text-emerald-500">
+                {afterBE > 0 ? `+${afterBE.toFixed(1)}%` : '✓'}
+              </div>
+            </div>
+            {ppSaved > 0.1 && (
+              <span className="ml-auto text-[10px] font-bold text-emerald-500 px-1.5 py-0.5 rounded-full"
+                style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}>
+                −{ppSaved.toFixed(1)}pp saved
+              </span>
+            )}
           </div>
-        ))}
+        </div>
       </div>
 
       {/* Per-asset card rows */}
@@ -137,30 +156,35 @@ export default function DCAPanel({ assets }: DCAPanelProps) {
               <div className="text-[11px] font-semibold t-1">{fmtCurrency(mb, 0)}<span className="text-[9px] t-3">/mo</span></div>
             </div>
 
-            {/* Avg entry before → after */}
+            {/* Avg entry: now dimmed → after bold green */}
             <div className="flex-1">
-              <div className="text-[10px] t-3">Avg entry</div>
-              <div className="flex items-center gap-1 text-[11px]">
-                <span className="t-3">{fmtCurrency(asset.entryPrice)}</span>
-                <span className="t-3">→</span>
-                <span className="font-bold text-emerald-500">{fmtCurrency(newAvg)}</span>
+              <div className="text-[10px] t-3 mb-0.5">Avg entry</div>
+              <div className="flex items-center gap-1">
+                <span className="text-[11px] t-3 line-through opacity-50">{fmtCurrency(asset.entryPrice)}</span>
+                <span className="text-[10px] t-3">→</span>
+                <span className="text-[12px] font-bold text-emerald-500">{fmtCurrency(newAvg)}</span>
               </div>
             </div>
 
-            {/* Breakeven before → after */}
+            {/* Breakeven: now (red pill) → after (green pill) + improvement badge */}
             <div className="text-right">
-              <div className="text-[10px] t-3">Breakeven</div>
-              <div className="flex items-center justify-end gap-1 text-[11px]">
-                <span className={gainBefore > 0 ? 'text-red-500 font-medium' : 'text-emerald-500'}>
+              <div className="text-[10px] t-3 mb-0.5">Breakeven</div>
+              <div className="flex items-center justify-end gap-1">
+                <span className={`text-[11px] px-1.5 py-0.5 rounded-md font-semibold ${gainBefore > 0 ? 'text-red-500' : 'text-emerald-500'}`}
+                  style={{ background: gainBefore > 0 ? 'rgba(239,68,68,0.08)' : 'rgba(34,197,94,0.08)' }}>
                   {gainBefore > 0 ? `+${gainBefore.toFixed(1)}%` : '✓'}
                 </span>
-                <span className="t-3">→</span>
-                <span className={`font-bold ${gainAfter > 0 ? 'text-emerald-600' : 'text-emerald-500'}`}>
+                <span className="text-[10px] t-3">→</span>
+                <span className="text-[11px] px-1.5 py-0.5 rounded-md font-bold text-emerald-600"
+                  style={{ background: 'rgba(34,197,94,0.12)' }}>
                   {gainAfter > 0 ? `+${gainAfter.toFixed(1)}%` : '✓'}
                 </span>
               </div>
               {improvement > 0.1 && (
-                <div className="text-[9px] font-semibold text-emerald-500">−{improvement.toFixed(1)}pp</div>
+                <span className="inline-block text-[9px] font-bold text-emerald-500 px-1.5 py-0.5 rounded-full mt-0.5"
+                  style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                  −{improvement.toFixed(1)}pp easier
+                </span>
               )}
             </div>
           </div>
