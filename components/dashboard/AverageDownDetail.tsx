@@ -91,32 +91,25 @@ export default function AverageDownDetail({ assets }: Props) {
             <span className="text-sm font-bold text-orange-500 whitespace-nowrap w-16 text-right">{fmtCurrency(monthlyBudget, 0)}/mo</span>
           </div>
 
-          {/* Summary — grouped as one visual unit */}
+          {/* Summary */}
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-[11px] t-3">Deploy <span className="font-bold text-orange-500">{fmtCurrency(totalDeployed, 0)}</span></span>
+            <span className="text-[11px] t-3">Investing <span className="font-bold text-orange-500">{fmtCurrency(totalDeployed, 0)}</span></span>
             <div className="w-px h-4 flex-shrink-0" style={{ background: 'var(--border)' }} />
-            {/* Breakeven before → after grouped in one pill */}
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-              <div className="text-center">
-                <div className="text-[9px] t-3 leading-none mb-0.5">BE now</div>
-                <div className={`text-[11px] font-bold leading-none ${holdBE > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
-                  {holdBE > 0 ? `+${holdBE.toFixed(1)}%` : '✓'}
-                </div>
-              </div>
-              <span className="text-[10px] t-3">→</span>
-              <div className="text-center">
-                <div className="text-[9px] t-3 leading-none mb-0.5">after</div>
-                <div className="text-[11px] font-bold leading-none text-emerald-500">
-                  {afterBE > 0 ? `+${afterBE.toFixed(1)}%` : '✓'}
-                </div>
-              </div>
-            </div>
-            {ppSaved > 0.1 && (
-              <span className="text-[10px] font-bold text-emerald-500 px-1.5 py-1 rounded-lg"
-                style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}>
-                −{ppSaved.toFixed(1)}pp saved
+              <span className="text-[10px] t-3 font-medium">Breakeven</span>
+              <span className={`text-[11px] font-bold ${holdBE > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+                {holdBE > 0 ? `+${holdBE.toFixed(1)}%` : '✓'}
               </span>
-            )}
+              <span className="text-[10px] t-3">→</span>
+              <span className="text-[11px] font-bold text-emerald-500">
+                {afterBE > 0 ? `+${afterBE.toFixed(1)}%` : '✓'}
+              </span>
+              {ppSaved > 0.1 && (
+                <span className="text-[10px] font-bold text-emerald-500 pl-1 border-l" style={{ borderColor: 'var(--border)' }}>
+                  {ppSaved.toFixed(1)}% easier
+                </span>
+              )}
+            </div>
           </div>
         </div>
       </GlassCard>

@@ -94,38 +94,30 @@ export default function DCAPanel({ assets }: DCAPanelProps) {
         </div>
       </div>
 
-      {/* Summary stats — Deploy + Breakeven before→after grouped */}
-      <div className="flex items-center gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
-        {/* Deploy */}
-        <div className="rounded-xl px-3 py-2 flex-shrink-0" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-          <div className="text-[9px] t-3 uppercase tracking-wide mb-0.5">Deploy</div>
-          <div className="text-[13px] font-bold text-orange-500">{fmtCurrency(totalDeployed, 0)}</div>
-          <div className="text-[9px] t-3">{months}mo total</div>
+      {/* Summary */}
+      <div className="grid grid-cols-2 gap-2 px-4 py-3" style={{ borderBottom: '1px solid var(--border)' }}>
+        {/* Investing */}
+        <div className="rounded-xl px-3 py-2" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+          <div className="text-[9px] t-3 uppercase tracking-wide mb-1">Investing</div>
+          <div className="text-[15px] font-bold text-orange-500">{fmtCurrency(totalDeployed, 0)}</div>
+          <div className="text-[9px] t-3">{fmtCurrency(monthlyBudget, 0)} × {months} months</div>
         </div>
-        {/* Breakeven: now → after, visually grouped */}
-        <div className="flex-1 rounded-xl px-3 py-2 flex items-center gap-3" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
-          <div className="text-[9px] t-3 uppercase tracking-wide flex-shrink-0">Breakeven</div>
-          <div className="flex items-center gap-2 flex-1">
-            <div className="text-center">
-              <div className="text-[9px] t-3 mb-0.5">now</div>
-              <div className={`text-[13px] font-bold ${holdBE > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
-                {holdBE > 0 ? `+${holdBE.toFixed(1)}%` : '✓'}
-              </div>
-            </div>
+        {/* Breakeven change */}
+        <div className="rounded-xl px-3 py-2" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+          <div className="text-[9px] t-3 uppercase tracking-wide mb-1">Breakeven</div>
+          <div className="flex items-center gap-2">
+            <span className={`text-[15px] font-bold ${holdBE > 0 ? 'text-red-500' : 'text-emerald-500'}`}>
+              {holdBE > 0 ? `+${holdBE.toFixed(1)}%` : '✓'}
+            </span>
             <span className="text-[12px] t-3">→</span>
-            <div className="text-center">
-              <div className="text-[9px] t-3 mb-0.5">after plan</div>
-              <div className="text-[13px] font-bold text-emerald-500">
-                {afterBE > 0 ? `+${afterBE.toFixed(1)}%` : '✓'}
-              </div>
-            </div>
-            {ppSaved > 0.1 && (
-              <span className="ml-auto text-[10px] font-bold text-emerald-500 px-1.5 py-0.5 rounded-full"
-                style={{ background: 'rgba(34,197,94,0.1)', border: '1px solid rgba(34,197,94,0.25)' }}>
-                −{ppSaved.toFixed(1)}pp saved
-              </span>
-            )}
+            <span className="text-[15px] font-bold text-emerald-500">
+              {afterBE > 0 ? `+${afterBE.toFixed(1)}%` : '✓'}
+            </span>
           </div>
+          {ppSaved > 0.1
+            ? <div className="text-[9px] font-semibold text-emerald-500 mt-0.5">{ppSaved.toFixed(1)}% easier to recover</div>
+            : <div className="text-[9px] t-3 mt-0.5">no change</div>
+          }
         </div>
       </div>
 

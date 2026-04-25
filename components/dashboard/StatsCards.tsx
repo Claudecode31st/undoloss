@@ -1,5 +1,5 @@
 'use client';
-import { DollarSign, Activity, CreditCard, Target, Shield, Wallet } from 'lucide-react';
+import { DollarSign, Activity, CreditCard, Shield, Wallet } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { CryptoAsset, PortfolioStats, RiskScore } from '@/lib/types';
 import { fmtCurrency, fmtPercent } from '@/lib/calculations';
@@ -34,7 +34,7 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
   const divPct = risk.exposureScore / 25 * 100;
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
       {/* 1. Portfolio Value */}
       <GlassCard className="p-4" hover>
         <div className="p-2 rounded-lg bg-blue-500/10 border border-blue-500/20 w-fit mb-3">
@@ -54,12 +54,18 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         <div className={`p-2 rounded-lg w-fit mb-3 ${pnlPositive ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-red-500/10 border border-red-500/20'}`}>
           <Activity size={16} className={pnlPositive ? 'text-emerald-500' : 'text-red-500'} />
         </div>
-        <div className="text-[11px] t-3 mb-1">Unrealized P/L (ROI)</div>
+        <div className="text-[11px] t-3 mb-1">Unrealized P/L</div>
         <div className={`text-xl font-bold ${pnlPositive ? 'text-emerald-500' : 'text-red-500'}`}>
           {fmtCurrency(stats.totalUnrealizedPnL)}
         </div>
         <div className={`text-xs mt-1 font-medium ${pnlPositive ? 'text-emerald-500' : 'text-red-500'}`}>
           {fmtPercent(stats.totalUnrealizedPnLPercent)}
+        </div>
+        <div className={`text-xs mt-1 ${pnlPositive ? 'text-emerald-500' : 'text-orange-500'}`}>
+          {pnlPositive
+            ? `✓ +${roiPct.toFixed(1)}% ROI · in profit`
+            : `Need +${breakevenMove.toFixed(1)}% to recover`
+          }
         </div>
       </GlassCard>
 
@@ -89,25 +95,7 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         </div>
       </GlassCard>
 
-      {/* 5. Breakeven */}
-      <GlassCard className="p-4" hover glow={breakevenMove <= 0 ? 'green' : undefined}>
-        <div className={`p-2 rounded-lg w-fit mb-3 ${breakevenMove <= 0 ? 'bg-emerald-500/10 border border-emerald-500/20' : 'bg-orange-500/10 border border-orange-500/20'}`}>
-          <Target size={16} className={breakevenMove <= 0 ? 'text-emerald-500' : 'text-orange-500'} />
-        </div>
-        <div className="text-[11px] t-3 mb-1">Breakeven Target</div>
-        <div className="text-xl font-bold t-1">{fmtCurrency(stats.breakevenValue)}</div>
-        {breakevenMove <= 0 ? (
-          <div className="text-xs text-emerald-500 mt-1 font-medium">
-            ✓ +{roiPct.toFixed(1)}% ROI · in profit
-          </div>
-        ) : (
-          <div className="text-xs text-orange-500 mt-1">
-            Need <span className="font-medium">+{breakevenMove.toFixed(1)}%</span> to recover
-          </div>
-        )}
-      </GlassCard>
-
-      {/* 6. Risk Score — detailed breakdown */}
+      {/* 5. Risk Score — detailed breakdown */}
       <GlassCard className="p-4" hover>
         <div className="flex items-center justify-between mb-2">
           <div className="p-2 rounded-lg glass-dark w-fit">
