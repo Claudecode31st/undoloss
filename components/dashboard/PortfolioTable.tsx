@@ -23,9 +23,19 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
 
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid var(--border)' }}>
-        <h2 className="text-sm font-semibold t-1 flex items-center gap-2">
-          <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
-          Your Portfolio
+        <h2 className="text-sm font-semibold t-1 flex items-center gap-2.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
+          Portfolio P/L
+          {assets.length > 0 && (
+            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold ${totalPnL >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}
+              style={{
+                background: totalPnL >= 0 ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                border: `1px solid ${totalPnL >= 0 ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
+              }}>
+              {fmtCurrency(totalPnL)}
+              <span className="text-[10px] font-semibold opacity-80">{totalPnLPct >= 0 ? '+' : ''}{totalPnLPct.toFixed(2)}%</span>
+            </span>
+          )}
         </h2>
         <button
           onClick={onAdd}
@@ -217,25 +227,6 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
           );
         })}
 
-        {/* Total row */}
-        {assets.length > 0 && (
-          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
-            style={{ border: '1px solid var(--border)' }}>
-            <div style={{ width: 28 }} />
-            <div className="flex-1 min-w-0 text-[12px] font-semibold t-2">Total P/L</div>
-            <div className="w-36 flex-shrink-0" />
-            <div className="w-44 flex-shrink-0" />
-            <div className="w-32 flex-shrink-0 text-right">
-              <div className={`text-[13px] font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                {fmtCurrency(totalPnL)}
-              </div>
-              <div className={`text-[11px] font-semibold mt-0.5 ${totalPnLPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                {fmtPercent(totalPnLPct)}
-              </div>
-            </div>
-            <div className="w-14 flex-shrink-0" />
-          </div>
-        )}
       </div>
 
     </GlassCard>
