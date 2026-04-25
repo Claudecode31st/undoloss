@@ -102,7 +102,7 @@ export default function PortfolioAllocation({ assets }: PortfolioAllocationProps
                   </span>
                   {/* Breakeven need */}
                   <span className={`text-[10px] font-semibold whitespace-nowrap ${inProfit ? 'text-emerald-500' : 'text-orange-500'}`}>
-                    {inProfit ? '✓ Profit' : `${isShort ? '↓' : '↑'}${Math.abs(move).toFixed(1)}% to BE`}
+                    {inProfit ? '✓ Profit' : `${isShort ? '↓' : '↑'}${Math.abs(move).toFixed(1)}% to Breakeven`}
                   </span>
                 </div>
                 {/* Progress bar */}
