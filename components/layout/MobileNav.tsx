@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import {
   LayoutDashboard, CalendarDays,
-  MoreHorizontal, Settings, HelpCircle, Sun, Moon, X
+  MoreHorizontal, Settings, HelpCircle, Coffee, Sun, Moon, X
 } from 'lucide-react';
 
 const primary = [
@@ -109,8 +109,8 @@ export default function MobileNav() {
             })}
           </div>
 
-          {/* Theme toggle in sheet */}
-          <div className="px-4 pb-4">
+          {/* Theme toggle + donate */}
+          <div className="px-4 pb-4 space-y-2">
             <button
               onClick={() => setTheme(isDark ? 'light' : 'dark')}
               className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 hover:bg-black/5 dark:hover:bg-white/5"
@@ -124,6 +124,18 @@ export default function MobileNav() {
                 </div>
               </div>
             </button>
+            {/* Support card */}
+            <div className="rounded-xl p-3.5 space-y-2.5" style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+              <div>
+                <div className="text-sm font-semibold t-1">Support the Project</div>
+                <p className="text-xs t-3 mt-0.5 leading-snug">If this tool helped you manage your crypto journey, consider supporting its development.</p>
+              </div>
+              <button className="w-full flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-200 hover:opacity-80"
+                style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316' }}>
+                <Coffee size={14} />
+                Buy Me a Coffee
+              </button>
+            </div>
           </div>
         </div>
       </div>
