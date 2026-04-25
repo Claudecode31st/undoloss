@@ -22,7 +22,7 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
     <GlassCard className="overflow-hidden h-full">
 
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4" style={{ borderBottom: '1px solid var(--border)' }}>
+      <div className="flex items-center justify-between px-4 py-3.5" style={{ borderBottom: '1px solid var(--border)' }}>
         <h2 className="text-sm font-semibold t-1 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400" />
           Your Portfolio
@@ -54,7 +54,8 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1.5">
                   <span className="text-sm font-semibold t-1">{asset.symbol}</span>
-                  <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full ${isLong ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'}`}>
+                  <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none ${isLong ? 'text-emerald-600' : 'text-red-500'}`}
+                    style={{ background: isLong ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)', border: `1px solid ${isLong ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}` }}>
                     {isLong ? 'L' : 'S'}{asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
                   </span>
                   {asset.change24h !== undefined && (
@@ -86,164 +87,156 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
         )}
       </div>
 
-      {/* ── Desktop table — 5 columns ── */}
-      <div className="hidden md:block">
-        <table className="w-full table-fixed">
-          <colgroup>
-            <col style={{ width: '30%' }} /> {/* Asset + direction */}
-            <col style={{ width: '16%' }} /> {/* Size */}
-            <col style={{ width: '24%' }} /> {/* Entry / Current */}
-            <col style={{ width: '22%' }} /> {/* P/L */}
-            <col style={{ width: '8%' }}  /> {/* Actions */}
-          </colgroup>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--border)' }}>
-              {['Asset', 'Size', 'Entry / Current', 'Unrealized P/L', ''].map((h) => (
-                <th key={h} className="text-left text-[11px] t-3 font-medium px-4 py-2.5">{h}</th>
-              ))}
-            </tr>
-          </thead>
-
-          <tbody>
-            {assets.map((asset) => {
-              const pnl = calcAssetPnL(asset);
-              const pos = pnl.unrealizedPnL >= 0;
-              const isLong = (asset.direction ?? 'long') === 'long';
-              const liqPrice = calcMarginCallPrice(asset);
-              const distToLiq = liqPrice && asset.currentPrice > 0
-                ? ((liqPrice - asset.currentPrice) / asset.currentPrice) * 100
-                : null;
-
-              return (
-                <tr key={asset.id} className="table-row-hover transition-colors" style={{ borderBottom: '1px solid var(--border)' }}>
-
-                  {/* ① Asset: avatar + symbol/name + chips on second line */}
-                  <td className="px-4 py-2.5">
-                    <div className="flex items-start gap-2">
-                      <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0 mt-0.5"
-                        style={{ background: `linear-gradient(135deg, ${asset.color}dd, ${asset.color}88)` }}>
-                        {asset.symbol.slice(0, 1)}
-                      </div>
-                      <div className="min-w-0">
-                        {/* Symbol + name */}
-                        <div className="flex items-baseline gap-1.5">
-                          <span className="text-[13px] font-semibold t-1 leading-tight">{asset.symbol}</span>
-                          <span className="text-[11px] t-3 truncate">{asset.name}</span>
-                        </div>
-                        {/* Chips row — always on its own line, never expands the column */}
-                        <div className="flex items-center gap-1 mt-1 flex-wrap">
-                          {/* Direction + leverage chip */}
-                          <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none ${
-                            isLong
-                              ? 'text-emerald-600 dark:text-emerald-400'
-                              : 'text-red-500'
-                          }`} style={{
-                            background: isLong ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                            border: `1px solid ${isLong ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
-                          }}>
-                            {isLong ? 'L' : 'S'}{asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
-                          </span>
-                          {/* Capital chip */}
-                          {asset.capitalLeft ? (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-teal-600 dark:text-teal-400"
-                              style={{ background: 'rgba(20,184,166,0.1)', border: '1px solid rgba(20,184,166,0.25)' }}>
-                              <Wallet size={8} />
-                              {fmtCurrency(asset.capitalLeft, 0)}
-                            </span>
-                          ) : null}
-                          {/* Liquidation chip */}
-                          {liqPrice ? (
-                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-red-500"
-                              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
-                              <AlertTriangle size={8} />
-                              {fmtK(liqPrice)}
-                              {distToLiq !== null && <span className="ml-0.5 text-red-400">{distToLiq.toFixed(0)}%</span>}
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* ② Size */}
-                  <td className="px-4 py-2.5">
-                    <div className="text-[12px] t-1 font-medium leading-tight">
-                      {fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)}
-                      <span className="text-[10px] t-3 ml-1">{asset.symbol}</span>
-                    </div>
-                    <div className="text-[11px] t-3 mt-0.5">{fmtCurrency(pnl.costBasis)}</div>
-                  </td>
-
-                  {/* ③ Entry / Current */}
-                  <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-[10px] t-3 w-7">Entry</span>
-                      <span className="text-[12px] t-2 font-medium">{fmtCurrency(asset.entryPrice)}</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 mt-0.5">
-                      <span className="text-[10px] t-3 w-7">Now</span>
-                      <span className="text-[12px] t-1 font-semibold">{fmtCurrency(asset.currentPrice)}</span>
-                      {asset.change24h !== undefined && (
-                        <span className={`text-[10px] font-medium ${asset.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                          {fmtPercent(asset.change24h)}
-                        </span>
-                      )}
-                    </div>
-                  </td>
-
-                  {/* ④ P/L */}
-                  <td className="px-4 py-2.5">
-                    <div className={`text-[13px] font-bold leading-tight ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {fmtCurrency(pnl.unrealizedPnL)}
-                    </div>
-                    <div className={`text-[11px] font-semibold mt-0.5 ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
-                      {fmtPercent(pnl.unrealizedPnLPercent)}
-                    </div>
-                  </td>
-
-                  {/* ⑤ Actions */}
-                  <td className="px-4 py-2.5">
-                    <div className="flex items-center gap-1">
-                      <button onClick={() => onEdit(asset)}
-                        className="p-1.5 rounded-lg t-3 hover:text-orange-500 transition-colors"
-                        style={{ background: 'var(--surface-deep)' }}>
-                        <Pencil size={12} />
-                      </button>
-                      <button onClick={() => onDelete(asset.id)}
-                        className="p-1.5 rounded-lg t-3 hover:text-red-500 transition-colors"
-                        style={{ background: 'var(--surface-deep)' }}>
-                        <Trash2 size={12} />
-                      </button>
-                    </div>
-                  </td>
-
-                </tr>
-              );
-            })}
-          </tbody>
-
-          {assets.length > 0 && (
-            <tfoot>
-              <tr style={{ borderTop: '1px solid var(--border)' }}>
-                <td colSpan={3} className="px-4 py-2.5 text-[11px] t-3 font-medium">Total</td>
-                <td className="px-4 py-2.5">
-                  <div className={`text-[13px] font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {fmtCurrency(totalPnL)}
-                  </div>
-                  <div className={`text-[11px] font-semibold mt-0.5 ${totalPnLPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-                    {fmtPercent(totalPnLPct)}
-                  </div>
-                </td>
-                <td />
-              </tr>
-            </tfoot>
-          )}
-        </table>
-
+      {/* ── Desktop card-row list ── */}
+      <div className="hidden md:block px-4 py-3 space-y-2">
         {assets.length === 0 && (
-          <div className="text-center py-12 t-3 text-sm">No assets yet. Click "Add Asset" to get started.</div>
+          <div className="text-center py-10 t-3 text-sm">No assets yet. Click "Add Asset" to get started.</div>
+        )}
+
+        {/* Column labels */}
+        {assets.length > 0 && (
+          <div className="flex items-center gap-3 px-3 pb-1">
+            <div style={{ width: 28 }} />
+            <div className="flex-1 min-w-0">
+              <span className="text-[10px] t-3 font-medium uppercase tracking-wide">Asset</span>
+            </div>
+            <div className="w-36 flex-shrink-0">
+              <span className="text-[10px] t-3 font-medium uppercase tracking-wide">Size</span>
+            </div>
+            <div className="w-44 flex-shrink-0">
+              <span className="text-[10px] t-3 font-medium uppercase tracking-wide">Entry / Current</span>
+            </div>
+            <div className="w-32 flex-shrink-0 text-right">
+              <span className="text-[10px] t-3 font-medium uppercase tracking-wide">Unrealized P/L</span>
+            </div>
+            <div className="w-14 flex-shrink-0" />
+          </div>
+        )}
+
+        {assets.map((asset) => {
+          const pnl = calcAssetPnL(asset);
+          const pos = pnl.unrealizedPnL >= 0;
+          const isLong = (asset.direction ?? 'long') === 'long';
+          const liqPrice = calcMarginCallPrice(asset);
+          const distToLiq = liqPrice && asset.currentPrice > 0
+            ? ((liqPrice - asset.currentPrice) / asset.currentPrice) * 100
+            : null;
+
+          return (
+            <div key={asset.id}
+              className="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-colors hover:opacity-90"
+              style={{ background: 'var(--surface-deep)', border: '1px solid var(--border)' }}>
+
+              {/* Avatar */}
+              <div className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold text-white flex-shrink-0"
+                style={{ background: `linear-gradient(135deg, ${asset.color}dd, ${asset.color}88)` }}>
+                {asset.symbol.slice(0, 1)}
+              </div>
+
+              {/* Asset name + chips */}
+              <div className="flex-1 min-w-0">
+                <div className="flex items-baseline gap-1.5">
+                  <span className="text-[13px] font-semibold t-1 leading-tight">{asset.symbol}</span>
+                  <span className="text-[11px] t-3 truncate">{asset.name}</span>
+                </div>
+                <div className="flex items-center gap-1 mt-1 flex-wrap">
+                  <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none ${
+                    isLong ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'
+                  }`} style={{
+                    background: isLong ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                    border: `1px solid ${isLong ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                  }}>
+                    {isLong ? 'L' : 'S'}{asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
+                  </span>
+                  {asset.capitalLeft ? (
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-teal-600 dark:text-teal-400"
+                      style={{ background: 'rgba(20,184,166,0.1)', border: '1px solid rgba(20,184,166,0.25)' }}>
+                      <Wallet size={8} />{fmtCurrency(asset.capitalLeft, 0)}
+                    </span>
+                  ) : null}
+                  {liqPrice ? (
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-red-500"
+                      style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
+                      <AlertTriangle size={8} />{fmtK(liqPrice)}
+                      {distToLiq !== null && <span className="ml-0.5 text-red-400">{distToLiq.toFixed(0)}%</span>}
+                    </span>
+                  ) : null}
+                </div>
+              </div>
+
+              {/* Size */}
+              <div className="w-36 flex-shrink-0">
+                <div className="text-[12px] t-1 font-medium leading-tight">
+                  {fmtNumber(asset.amount, asset.amount < 1 ? 4 : 2)}
+                  <span className="text-[10px] t-3 ml-1">{asset.symbol}</span>
+                </div>
+                <div className="text-[11px] t-3 mt-0.5">{fmtCurrency(pnl.costBasis)}</div>
+              </div>
+
+              {/* Entry / Current */}
+              <div className="w-44 flex-shrink-0">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-[10px] t-3 w-6">Entry</span>
+                  <span className="text-[12px] t-2 font-medium">{fmtCurrency(asset.entryPrice)}</span>
+                </div>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <span className="text-[10px] t-3 w-6">Now</span>
+                  <span className="text-[12px] t-1 font-semibold">{fmtCurrency(asset.currentPrice)}</span>
+                  {asset.change24h !== undefined && (
+                    <span className={`text-[10px] font-medium ${asset.change24h >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                      {fmtPercent(asset.change24h)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* P/L */}
+              <div className="w-32 flex-shrink-0 text-right">
+                <div className={`text-[13px] font-bold leading-tight ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {fmtCurrency(pnl.unrealizedPnL)}
+                </div>
+                <div className={`text-[11px] font-semibold mt-0.5 ${pos ? 'text-emerald-500' : 'text-red-500'}`}>
+                  {fmtPercent(pnl.unrealizedPnLPercent)}
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="w-14 flex-shrink-0 flex items-center justify-end gap-1">
+                <button onClick={() => onEdit(asset)}
+                  className="p-1.5 rounded-lg t-3 hover:text-orange-500 transition-colors"
+                  style={{ background: 'var(--surface)' }}>
+                  <Pencil size={12} />
+                </button>
+                <button onClick={() => onDelete(asset.id)}
+                  className="p-1.5 rounded-lg t-3 hover:text-red-500 transition-colors"
+                  style={{ background: 'var(--surface)' }}>
+                  <Trash2 size={12} />
+                </button>
+              </div>
+            </div>
+          );
+        })}
+
+        {/* Total row */}
+        {assets.length > 0 && (
+          <div className="flex items-center gap-3 px-3 pt-1.5">
+            <div style={{ width: 28 }} />
+            <div className="flex-1 min-w-0 text-[11px] t-3 font-medium">Total P/L</div>
+            <div className="w-36 flex-shrink-0" />
+            <div className="w-44 flex-shrink-0" />
+            <div className="w-32 flex-shrink-0 text-right">
+              <div className={`text-[13px] font-bold ${totalPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                {fmtCurrency(totalPnL)}
+              </div>
+              <div className={`text-[11px] font-semibold mt-0.5 ${totalPnLPct >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                {fmtPercent(totalPnLPct)}
+              </div>
+            </div>
+            <div className="w-14 flex-shrink-0" />
+          </div>
         )}
       </div>
+
     </GlassCard>
   );
 }
