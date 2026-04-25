@@ -26,16 +26,6 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
         <h2 className="text-sm font-semibold t-1 flex items-center gap-2.5">
           <span className="w-1.5 h-1.5 rounded-full bg-orange-400 flex-shrink-0" />
           Portfolio P/L
-          {assets.length > 0 && (
-            <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-bold ${totalPnL >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}
-              style={{
-                background: totalPnL >= 0 ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
-                border: `1px solid ${totalPnL >= 0 ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
-              }}>
-              {fmtCurrency(totalPnL)}
-              <span className="text-[10px] font-semibold opacity-80">{totalPnLPct >= 0 ? '+' : ''}{totalPnLPct.toFixed(2)}%</span>
-            </span>
-          )}
         </h2>
         <button
           onClick={onAdd}
