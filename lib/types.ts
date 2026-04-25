@@ -57,6 +57,8 @@ export interface Portfolio {
   riskMode: RiskMode;
   hedgeRatio: number;
   lastUpdated: string;
+  /** Total account equity in the cross-margin pool (e.g. USDT balance on the exchange) */
+  crossMarginBalance?: number;
 }
 
 export interface PortfolioStats {

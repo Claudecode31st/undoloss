@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { X, Search, Loader2, AlertTriangle } from 'lucide-react';
 import { CryptoAsset, SUPPORTED_COINS } from '@/lib/types';
 import { generateId } from '@/lib/storage';
-import { calcMarginCallPrice, fmtCurrency } from '@/lib/calculations';
+import { calcMarginCallPrice, calcInitialMargin, fmtCurrency } from '@/lib/calculations';
 
 interface AssetModalProps {
   open: boolean;
@@ -71,7 +71,7 @@ export default function AssetModal({ open, asset, existingAssets = [], onClose, 
   const entryNum = parseFloat(entryPrice) || 0;
   const currentNum = parseFloat(currentPrice) || 0;
 
-  // Margin call preview
+  // Position preview
   const previewAsset: CryptoAsset = {
     id: '', symbol, name, coinGeckoId, color,
     amount: parseFloat(amount) || 0,
@@ -83,6 +83,13 @@ export default function AssetModal({ open, asset, existingAssets = [], onClose, 
   const marginCall = leverageNum > 1 ? calcMarginCallPrice(previewAsset) : null;
   const distToMarginCall = marginCall && currentNum > 0
     ? ((marginCall - currentNum) / currentNum) * 100
+    : null;
+  // Initial margin required for this position
+  const initialMargin = leverageNum > 1 && entryNum > 0 && previewAsset.amount > 0
+    ? calcInitialMargin(previewAsset)
+    : null;
+  const notionalValue = entryNum > 0 && previewAsset.amount > 0
+    ? entryNum * previewAsset.amount
     : null;
 
   const handleSave = () => {
@@ -248,29 +255,45 @@ export default function AssetModal({ open, asset, existingAssets = [], onClose, 
             <div className="flex justify-between text-[10px] t-3"><span>1×</span><span>10×</span><span>25×</span><span>50×</span><span>100×</span></div>
           </div>
 
-          {/* Margin call preview */}
-          {marginCall !== null && entryNum > 0 && (
-            <div className="col-span-2 px-3 py-2.5 rounded-xl flex items-start gap-2"
-              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
-              <AlertTriangle size={13} className="text-red-500 flex-shrink-0 mt-0.5" />
-              <div>
-                <div className="text-xs font-semibold text-red-500">
-                  Liquidation price: {fmtCurrency(marginCall)}
+          {/* Position margin breakdown */}
+          {leverageNum > 1 && entryNum > 0 && previewAsset.amount > 0 && (
+            <div className="col-span-2 rounded-xl overflow-hidden"
+              style={{ border: '1px solid var(--border)', background: 'var(--surface-deep)' }}>
+              {/* Margin stats row */}
+              <div className="grid grid-cols-3 divide-x text-center py-2.5" style={{ borderColor: 'var(--border)' }}>
+                <div className="px-2">
+                  <div className="text-[9px] t-3 uppercase tracking-wide">Notional</div>
+                  <div className="text-xs font-bold t-1 mt-0.5">{notionalValue ? fmtCurrency(notionalValue, 0) : '—'}</div>
                 </div>
-                {distToMarginCall !== null && currentNum > 0 && (
-                  <div className="text-[10px] t-3 mt-0.5">
-                    {direction === 'long'
-                      ? `Price must drop ${Math.abs(distToMarginCall).toFixed(1)}% from current to trigger liquidation`
-                      : `Price must rise ${Math.abs(distToMarginCall).toFixed(1)}% from current to trigger liquidation`}
-                  </div>
-                )}
+                <div className="px-2">
+                  <div className="text-[9px] t-3 uppercase tracking-wide">Margin Required</div>
+                  <div className="text-xs font-bold text-teal-400 mt-0.5">{initialMargin ? fmtCurrency(initialMargin, 0) : '—'}</div>
+                </div>
+                <div className="px-2">
+                  <div className="text-[9px] t-3 uppercase tracking-wide">Isolated Liq</div>
+                  <div className="text-xs font-bold text-red-400 mt-0.5">{marginCall ? fmtCurrency(marginCall, 0) : '—'}</div>
+                </div>
               </div>
+              {/* Liq warning */}
+              {marginCall !== null && currentNum > 0 && distToMarginCall !== null && (
+                <div className="px-3 py-2 border-t flex items-start gap-2" style={{ borderColor: 'var(--border)', background: 'rgba(239,68,68,0.06)' }}>
+                  <AlertTriangle size={11} className="text-red-500 flex-shrink-0 mt-0.5" />
+                  <div className="text-[10px] t-3 leading-snug">
+                    <span className="text-red-400 font-semibold">Isolated margin liq</span>
+                    {' '}at {fmtCurrency(marginCall)} —{' '}
+                    {direction === 'long'
+                      ? `price needs to drop ${Math.abs(distToMarginCall).toFixed(1)}% from current`
+                      : `price needs to rise ${Math.abs(distToMarginCall).toFixed(1)}% from current`}.
+                    {' '}<span className="t-3">Cross-margin liq will be further away (uses full account balance as buffer).</span>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
           <div className="col-span-2">
             <label className="text-xs t-2 mb-1.5 block">
-              Capital Left to Deploy (USD) <span className="t-3 text-[10px]">(optional)</span>
+              Notes <span className="t-3 text-[10px]">(optional — e.g. isolated margin reserved)</span>
             </label>
             <input type="number" value={capitalLeft} onChange={(e) => setCapitalLeft(e.target.value)}
               placeholder="e.g. 500" className="glass-input w-full rounded-xl px-3 py-2 text-sm" />

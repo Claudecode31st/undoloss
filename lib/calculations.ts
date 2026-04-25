@@ -85,7 +85,7 @@ export function calcAllocation(assets: CryptoAsset[]): AllocationItem[] {
   return main;
 }
 
-export function calcRiskScore(assets: CryptoAsset[]): RiskScore {
+export function calcRiskScore(assets: CryptoAsset[], crossMarginBalance?: number): RiskScore {
   if (assets.length === 0) {
     return { score: 0, level: 'Low Risk', drawdownScore: 0, leverageScore: 0, liquidationScore: 0, leveragedPortfolioPct: 0, closestLiqDistPct: null, maxLeverage: 0 };
   }
@@ -107,13 +107,15 @@ export function calcRiskScore(assets: CryptoAsset[]): RiskScore {
   const leverageScore = Math.min(35, (leveragedPortfolioPct / 100) * 20 + Math.min(15, (maxLeverage - 1) * 1.5));
 
   // 3. Liquidation proximity (0–25 pts): how close the nearest margin call is
+  // Use cross-margin formula when account balance is provided; fall back to isolated-margin
   let closestLiqDistPct: number | null = null;
   for (const asset of assets) {
-    const liqPrice = calcMarginCallPrice(asset);
-    if (liqPrice && asset.currentPrice > 0) {
+    const liqPrice = crossMarginBalance && crossMarginBalance > 0
+      ? calcCrossMarginLiqPrice(asset, assets, crossMarginBalance)
+      : calcMarginCallPrice(asset);
+    if (liqPrice !== null && liqPrice > 0 && asset.currentPrice > 0) {
       const isLong = (asset.direction ?? 'long') === 'long';
-      // For longs: how far current price is above liq (negative means already liquidated)
-      // For shorts: how far current price is below liq
+      // Distance from current price to liquidation price
       const dist = isLong
         ? ((asset.currentPrice - liqPrice) / asset.currentPrice) * 100
         : ((liqPrice - asset.currentPrice) / asset.currentPrice) * 100;
@@ -193,6 +195,66 @@ export function calcMarginCallPrice(asset: CryptoAsset): number | null {
   }
   // Liquidated when price falls (lev-1)/lev below entry
   return asset.entryPrice * (lev - 1) / lev;
+}
+
+/**
+ * Initial margin required to open a leveraged position.
+ * = notional / leverage  (the collateral you lock up)
+ */
+export function calcInitialMargin(asset: CryptoAsset): number {
+  const lev = Math.max(1, asset.leverage ?? 1);
+  return (asset.entryPrice * asset.amount) / lev;
+}
+
+/**
+ * Standard exchange maintenance margin rate for a given leverage level.
+ * 100× → 0.5%, 50× → 1%, 25× → 2%, 10× → 5%, etc.
+ */
+function maintenanceRate(leverage: number): number {
+  return Math.min(0.05, Math.max(0.004, 0.5 / Math.max(1, leverage)));
+}
+
+/**
+ * Cross-margin liquidation price for a specific asset.
+ *
+ * In cross margin ALL positions share one account balance.
+ * Liquidation fires when:
+ *   accountEquity  ≤  totalMaintenanceMargin
+ *   where accountEquity = accountBalance + Σ unrealizedPnL (all positions)
+ *
+ * Solving for the price P of THIS asset (assuming all others stay flat):
+ *   Long:  P = entryPrice - (accountBalance + otherPnL − totalMM) / amount
+ *   Short: P = entryPrice + (accountBalance + otherPnL − totalMM) / amount
+ *
+ * Returns null if leverage ≤ 1 or the position has no size.
+ */
+export function calcCrossMarginLiqPrice(
+  asset: CryptoAsset,
+  allAssets: CryptoAsset[],
+  accountBalance: number,
+): number | null {
+  const lev = asset.leverage ?? 1;
+  if (lev <= 1 || asset.amount <= 0 || accountBalance <= 0) return null;
+
+  const isShort = (asset.direction ?? 'long') === 'short';
+
+  // PnL from every OTHER position at their current price
+  const otherPnL = allAssets
+    .filter(a => a.id !== asset.id && (a.leverage ?? 1) > 1)
+    .reduce((sum, a) => sum + calcAssetPnL(a).unrealizedPnL, 0);
+
+  // Total maintenance margin across ALL leveraged positions
+  const totalMM = allAssets
+    .filter(a => (a.leverage ?? 1) > 1)
+    .reduce((sum, a) => sum + a.entryPrice * a.amount * maintenanceRate(a.leverage ?? 1), 0);
+
+  const buffer = accountBalance + otherPnL - totalMM;
+
+  const liqPrice = isShort
+    ? asset.entryPrice + buffer / asset.amount
+    : asset.entryPrice - buffer / asset.amount;
+
+  return liqPrice > 0 ? liqPrice : 0;
 }
 
 export function fmtCurrency(value: number, decimals = 2): string {

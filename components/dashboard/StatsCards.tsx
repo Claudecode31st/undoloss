@@ -1,8 +1,9 @@
 'use client';
-import { DollarSign, Activity, CreditCard, Shield, Wallet } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { DollarSign, Activity, CreditCard, Shield, Wallet, Pencil, Check, X } from 'lucide-react';
 import GlassCard from '@/components/ui/GlassCard';
 import { CryptoAsset, PortfolioStats, RiskScore } from '@/lib/types';
-import { fmtCurrency, fmtPercent } from '@/lib/calculations';
+import { fmtCurrency, fmtPercent, calcInitialMargin } from '@/lib/calculations';
 
 interface StatsCardsProps {
   stats: PortfolioStats;
@@ -10,9 +11,25 @@ interface StatsCardsProps {
   assets: CryptoAsset[];
   assetCount: number;
   show24hChange?: boolean;
+  crossMarginBalance?: number;
+  onCrossMarginChange?: (v: number) => void;
 }
 
-export default function StatsCards({ stats, risk, assets, assetCount, show24hChange = true }: StatsCardsProps) {
+export default function StatsCards({ stats, risk, assets, assetCount, show24hChange = true, crossMarginBalance = 0, onCrossMarginChange }: StatsCardsProps) {
+  const [editingMargin, setEditingMargin] = useState(false);
+  const [marginInput, setMarginInput] = useState('');
+  const marginRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editingMargin && marginRef.current) marginRef.current.focus();
+  }, [editingMargin]);
+
+  function commitMargin() {
+    const val = parseFloat(marginInput.replace(/[^0-9.]/g, ''));
+    if (val > 0) onCrossMarginChange?.(val);
+    setEditingMargin(false);
+  }
+
   const pnlPositive = stats.totalUnrealizedPnL >= 0;
   // How much % gain needed on current value to reach breakeven (correct for recovery math)
   const breakevenMove = stats.totalValue > 0
@@ -25,8 +42,11 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
 
   const riskColor = risk.score < 30 ? '#22c55e' : risk.score < 55 ? '#eab308' : risk.score < 75 ? '#f97316' : '#ef4444';
 
-  // Capital available = sum of capitalLeft across all assets
-  const capitalAvailable = assets.reduce((sum, a) => sum + (a.capitalLeft ?? 0), 0);
+  // Cross-margin margin utilisation
+  const totalMarginUsed = assets.reduce((sum, a) => sum + ((a.leverage ?? 1) > 1 ? calcInitialMargin(a) : 0), 0);
+  const marginAvailable = crossMarginBalance > 0 ? Math.max(0, crossMarginBalance - totalMarginUsed) : 0;
+  const marginUsedPct   = crossMarginBalance > 0 ? Math.min(100, (totalMarginUsed / crossMarginBalance) * 100) : 0;
+  const marginBarColor  = marginUsedPct > 85 ? '#ef4444' : marginUsedPct > 60 ? '#f97316' : marginUsedPct > 35 ? '#eab308' : '#22c55e';
 
   // Risk bar widths
   const ddPct   = risk.drawdownScore   / 40 * 100;
@@ -106,18 +126,57 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         </div>
       </GlassCard>
 
-      {/* 4. Capital Available */}
+      {/* 4. Cross-Margin Account */}
       <GlassCard className="p-4" hover>
-        <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/20 w-fit mb-3">
-          <Wallet size={16} className="text-teal-500" />
+        <div className="flex items-start justify-between mb-2">
+          <div className="p-2 rounded-lg bg-teal-500/10 border border-teal-500/20 w-fit">
+            <Wallet size={16} className="text-teal-500" />
+          </div>
+          {!editingMargin && (
+            <button
+              onClick={() => { setMarginInput(crossMarginBalance > 0 ? String(Math.round(crossMarginBalance)) : ''); setEditingMargin(true); }}
+              className="p-1 rounded-lg t-3 hover:text-teal-400 transition-colors"
+              title="Edit cross-margin balance"
+            >
+              <Pencil size={11} />
+            </button>
+          )}
         </div>
-        <div className="text-[11px] t-3 mb-1">Capital Available</div>
-        <div className={`text-xl font-bold ${capitalAvailable > 0 ? 'text-teal-500' : 't-1'}`}>
-          {capitalAvailable > 0 ? fmtCurrency(capitalAvailable) : '—'}
-        </div>
-        <div className="text-xs t-3 mt-1">
-          {capitalAvailable > 0 ? 'left to deploy' : 'set in positions'}
-        </div>
+        <div className="text-[11px] t-3 mb-1">Margin Account</div>
+        {editingMargin ? (
+          <div className="flex items-center gap-1 mb-1">
+            <input
+              ref={marginRef}
+              type="number"
+              value={marginInput}
+              onChange={e => setMarginInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') commitMargin(); if (e.key === 'Escape') setEditingMargin(false); }}
+              className="glass-input w-full rounded-lg px-2 py-1 text-sm font-bold t-1"
+              placeholder="Account balance"
+            />
+            <button onClick={commitMargin} className="p-1 rounded text-emerald-500 hover:bg-emerald-500/10 flex-shrink-0"><Check size={12} /></button>
+            <button onClick={() => setEditingMargin(false)} className="p-1 rounded t-3 hover:t-1 flex-shrink-0"><X size={12} /></button>
+          </div>
+        ) : (
+          <div className={`text-xl font-bold ${crossMarginBalance > 0 ? 'text-teal-500' : 't-3'}`}>
+            {crossMarginBalance > 0 ? fmtCurrency(crossMarginBalance) : '— tap ✎'}
+          </div>
+        )}
+        {crossMarginBalance > 0 && !editingMargin && (
+          <div className="mt-1.5 space-y-1">
+            {/* Margin utilisation bar */}
+            <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
+              <div className="h-full rounded-full transition-all" style={{ width: `${marginUsedPct}%`, background: marginBarColor }} />
+            </div>
+            <div className="flex justify-between text-[9px] tabular-nums">
+              <span className="t-3">Used <span className="font-semibold" style={{ color: marginBarColor }}>{fmtCurrency(totalMarginUsed, 0)}</span></span>
+              <span style={{ color: '#2dd4bf' }} className="font-semibold">{fmtCurrency(marginAvailable, 0)} free</span>
+            </div>
+          </div>
+        )}
+        {crossMarginBalance <= 0 && !editingMargin && (
+          <div className="text-[10px] t-3 mt-1">cross-margin balance</div>
+        )}
       </GlassCard>
 
       {/* 5. Risk Score */}

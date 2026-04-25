@@ -114,7 +114,7 @@ export default function Dashboard() {
   }
 
   const stats = calcPortfolioStats(portfolio.assets);
-  const risk  = calcRiskScore(portfolio.assets);
+  const risk  = calcRiskScore(portfolio.assets, portfolio.crossMarginBalance);
 
   const handleAddAsset    = () => { setEditAsset(null); setModalOpen(true); };
   const handleEditAsset   = (a: CryptoAsset) => { setEditAsset(a); setModalOpen(true); };
@@ -156,7 +156,15 @@ export default function Dashboard() {
         </div>
       )}
 
-      <StatsCards stats={stats} risk={risk} assets={portfolio.assets} assetCount={portfolio.assets.length} show24hChange={prefs.show24hChange} />
+      <StatsCards
+        stats={stats}
+        risk={risk}
+        assets={portfolio.assets}
+        assetCount={portfolio.assets.length}
+        show24hChange={prefs.show24hChange}
+        crossMarginBalance={portfolio.crossMarginBalance ?? 0}
+        onCrossMarginChange={(v) => setPortfolio(p => p ? { ...p, crossMarginBalance: v } : p)}
+      />
 
       {/* ── MOBILE layout ── */}
       <div className="md:hidden mt-3">
