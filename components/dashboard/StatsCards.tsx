@@ -42,6 +42,18 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
 
   const riskColor = risk.score < 30 ? '#22c55e' : risk.score < 55 ? '#eab308' : risk.score < 75 ? '#f97316' : '#ef4444';
 
+  // Actual capital committed per position = notional / leverage (margin)
+  // For unlevered positions it equals the full notional
+  const actualCapitalDeployed = assets.reduce((sum, a) => {
+    const lev = a.leverage ?? 1;
+    return sum + (a.entryPrice * a.amount) / lev;
+  }, 0);
+  const totalNotional = stats.totalInvested; // raw notional (entryPrice × amount, no lev adjustment)
+  const hasLeverage = assets.some(a => (a.leverage ?? 1) > 1);
+  const avgLeverage = hasLeverage && actualCapitalDeployed > 0
+    ? Math.round(totalNotional / actualCapitalDeployed)
+    : 1;
+
   // Cross-margin margin utilisation
   const totalMarginUsed = assets.reduce((sum, a) => sum + ((a.leverage ?? 1) > 1 ? calcInitialMargin(a) : 0), 0);
   const marginAvailable = crossMarginBalance > 0 ? Math.max(0, crossMarginBalance - totalMarginUsed) : 0;
@@ -114,15 +126,18 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         </div>
       </GlassCard>
 
-      {/* 3. Capital Deployed */}
+      {/* 3. Capital Deployed (margin-adjusted) */}
       <GlassCard className="p-4" hover>
         <div className="p-2 rounded-lg bg-purple-500/10 border border-purple-500/20 w-fit mb-3">
           <CreditCard size={16} className="text-purple-500" />
         </div>
-        <div className="text-[11px] t-3 mb-1">Capital Deployed</div>
-        <div className="text-xl font-bold t-1">{fmtCurrency(stats.totalInvested)}</div>
+        <div className="text-[11px] t-3 mb-1">{hasLeverage ? 'Margin Committed' : 'Capital Deployed'}</div>
+        <div className="text-xl font-bold t-1">{fmtCurrency(actualCapitalDeployed)}</div>
         <div className="text-xs t-3 mt-1">
-          <span className="t-2 font-medium">{assetCount} position{assetCount !== 1 ? 's' : ''}</span>
+          {hasLeverage
+            ? <><span className="t-2 font-medium">~{fmtCurrency(totalNotional, 0)}</span> notional · {avgLeverage}× avg</>
+            : <span className="t-2 font-medium">{assetCount} position{assetCount !== 1 ? 's' : ''}</span>
+          }
         </div>
       </GlassCard>
 

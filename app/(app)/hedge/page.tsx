@@ -96,10 +96,16 @@ function HedgePairCard({ pair }: { pair: HedgePair }) {
   const longPnL  = calcAssetPnL(long);
   const shortPnL = calcAssetPnL(short);
 
-  const longValue  = longPnL.marketValue;
-  const shortValue = shortPnL.marketValue;
-  const netExposure = longValue > 0
-    ? ((longValue - shortValue) / longValue) * 100
+  // Equity values — for display only (what the positions are worth)
+  const longEquity  = longPnL.marketValue;
+  const shortEquity = shortPnL.marketValue;
+
+  // Delta — directional price sensitivity (amount × currentPrice).
+  // Equal long/short token amounts → net delta = 0 (true delta neutral).
+  const longDelta  = long.amount  * long.currentPrice;
+  const shortDelta = short.amount * short.currentPrice;
+  const netExposure = longDelta > 0
+    ? Math.max(0, ((longDelta - shortDelta) / longDelta) * 100)
     : 100;
 
   const cfg = signal ? SIGNAL_CONFIG[signal.signal] : SIGNAL_CONFIG.HOLD;
@@ -117,7 +123,7 @@ function HedgePairCard({ pair }: { pair: HedgePair }) {
           <div>
             <div className="text-sm font-semibold t-1">{long.symbol} Hedge Pair</div>
             <div className="text-[11px] t-3 mt-0.5">
-              Long {fmtCurrency(longValue, 0)} · Short {fmtCurrency(shortValue, 0)}
+              Long {fmtCurrency(longEquity, 0)} · Short {fmtCurrency(shortEquity, 0)}
             </div>
           </div>
         </div>
@@ -335,11 +341,21 @@ export default function HedgePage() {
   const unhedged  = assets.filter(a => !pairedIds.has(a.id));
 
   // Portfolio-level net exposure
+  // Delta (amount × currentPrice) — measures price sensitivity, not equity.
+  // Equal long/short token amounts → net delta = 0 regardless of entry prices.
+  const totalLongDelta  = assets.filter(a => (a.direction ?? 'long') === 'long')
+    .reduce((s, a) => s + a.amount * a.currentPrice, 0);
+  const totalShortDelta = assets.filter(a => a.direction === 'short' && a.hedgeFor)
+    .reduce((s, a) => s + a.amount * a.currentPrice, 0);
+  const netPct = totalLongDelta > 0
+    ? Math.max(0, ((totalLongDelta - totalShortDelta) / totalLongDelta) * 100)
+    : 100;
+
+  // Equity values for display labels
   const totalLong  = assets.filter(a => (a.direction ?? 'long') === 'long')
     .reduce((s, a) => s + calcAssetPnL(a).marketValue, 0);
   const totalShort = assets.filter(a => a.direction === 'short' && a.hedgeFor)
     .reduce((s, a) => s + calcAssetPnL(a).marketValue, 0);
-  const netPct = totalLong > 0 ? ((totalLong - totalShort) / totalLong) * 100 : 100;
 
   return (
     <div className="space-y-4">
