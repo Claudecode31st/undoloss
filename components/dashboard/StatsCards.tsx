@@ -54,10 +54,14 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
     ? Math.round(totalNotional / actualCapitalDeployed)
     : 1;
 
-  // Cross-margin margin utilisation
+  // Cross-margin account breakdown
+  // crossMarginBalance = Wallet Balance (cash + realised PnL, what the exchange calls "Wallet Balance")
+  // Equity = Wallet Balance + unrealised PnL (what the exchange shows as "Equity")
+  // Available = Equity − initial margin locked in open positions (matches exchange "Available Balance")
   const totalMarginUsed = assets.reduce((sum, a) => sum + ((a.leverage ?? 1) > 1 ? calcInitialMargin(a) : 0), 0);
-  const marginAvailable = crossMarginBalance > 0 ? Math.max(0, crossMarginBalance - totalMarginUsed) : 0;
-  const marginUsedPct   = crossMarginBalance > 0 ? Math.min(100, (totalMarginUsed / crossMarginBalance) * 100) : 0;
+  const accountEquity   = crossMarginBalance > 0 ? crossMarginBalance + stats.totalUnrealizedPnL : 0;
+  const marginAvailable = accountEquity > 0 ? Math.max(0, accountEquity - totalMarginUsed) : 0;
+  const marginUsedPct   = accountEquity > 0 ? Math.min(100, (totalMarginUsed / accountEquity) * 100) : 0;
   const marginBarColor  = marginUsedPct > 85 ? '#ef4444' : marginUsedPct > 60 ? '#f97316' : marginUsedPct > 35 ? '#eab308' : '#22c55e';
 
   // Risk bar widths
@@ -83,7 +87,7 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
   const liqLabel = risk.closestLiqDistPct === null
     ? 'No leveraged positions'
     : risk.closestLiqDistPct <= 0
-    ? 'Already liquidated!'
+    ? crossMarginBalance > 0 ? 'Set wallet bal. for liq' : 'Past isolated liq'
     : `Nearest liq −${risk.closestLiqDistPct.toFixed(0)}% away`;
   const liqColor =
     risk.closestLiqDistPct === null  ? '#22c55e'
@@ -151,46 +155,61 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
             <button
               onClick={() => { setMarginInput(crossMarginBalance > 0 ? String(Math.round(crossMarginBalance)) : ''); setEditingMargin(true); }}
               className="p-1 rounded-lg t-3 hover:text-teal-400 transition-colors"
-              title="Edit cross-margin balance"
+              title="Enter Wallet Balance from your exchange"
             >
               <Pencil size={11} />
             </button>
           )}
         </div>
-        <div className="text-[11px] t-3 mb-1">Margin Account</div>
+
+        {/* Label + wallet balance input */}
+        <div className="text-[11px] t-3 mb-0.5">Wallet Balance</div>
         {editingMargin ? (
-          <div className="flex items-center gap-1 mb-1">
-            <input
-              ref={marginRef}
-              type="number"
-              value={marginInput}
-              onChange={e => setMarginInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') commitMargin(); if (e.key === 'Escape') setEditingMargin(false); }}
-              className="glass-input w-full rounded-lg px-2 py-1 text-sm font-bold t-1"
-              placeholder="Account balance"
-            />
-            <button onClick={commitMargin} className="p-1 rounded text-emerald-500 hover:bg-emerald-500/10 flex-shrink-0"><Check size={12} /></button>
-            <button onClick={() => setEditingMargin(false)} className="p-1 rounded t-3 hover:t-1 flex-shrink-0"><X size={12} /></button>
-          </div>
+          <>
+            <div className="flex items-center gap-1 mb-1">
+              <input
+                ref={marginRef}
+                type="number"
+                value={marginInput}
+                onChange={e => setMarginInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') commitMargin(); if (e.key === 'Escape') setEditingMargin(false); }}
+                className="glass-input w-full rounded-lg px-2 py-1 text-sm font-bold t-1"
+                placeholder="e.g. 50281"
+              />
+              <button onClick={commitMargin} className="p-1 rounded text-emerald-500 hover:bg-emerald-500/10 flex-shrink-0"><Check size={12} /></button>
+              <button onClick={() => setEditingMargin(false)} className="p-1 rounded t-3 hover:t-1 flex-shrink-0"><X size={12} /></button>
+            </div>
+            <p className="text-[9px] t-3 leading-snug">Enter <span className="font-semibold text-teal-400">Wallet Balance</span> from your exchange — not Equity or Available Balance. Used for liq price calculation.</p>
+          </>
         ) : (
           <div className={`text-xl font-bold ${crossMarginBalance > 0 ? 'text-teal-500' : 't-3'}`}>
             {crossMarginBalance > 0 ? fmtCurrency(crossMarginBalance) : '— tap ✎'}
           </div>
         )}
+
+        {/* Derived equity + available breakdown */}
         {crossMarginBalance > 0 && !editingMargin && (
-          <div className="mt-1.5 space-y-1">
+          <div className="mt-1.5 space-y-1.5">
+            {/* Equity row */}
+            <div className="flex justify-between text-[9px] tabular-nums">
+              <span className="t-3">Equity</span>
+              <span className={`font-semibold ${accountEquity >= 0 ? 'text-teal-400' : 'text-red-400'}`}>
+                {fmtCurrency(accountEquity, 0)}
+              </span>
+            </div>
             {/* Margin utilisation bar */}
             <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
               <div className="h-full rounded-full transition-all" style={{ width: `${marginUsedPct}%`, background: marginBarColor }} />
             </div>
+            {/* Used / Available */}
             <div className="flex justify-between text-[9px] tabular-nums">
-              <span className="t-3">Used <span className="font-semibold" style={{ color: marginBarColor }}>{fmtCurrency(totalMarginUsed, 0)}</span></span>
-              <span style={{ color: '#2dd4bf' }} className="font-semibold">{fmtCurrency(marginAvailable, 0)} free</span>
+              <span className="t-3">Margin <span className="font-semibold" style={{ color: marginBarColor }}>{fmtCurrency(totalMarginUsed, 0)}</span></span>
+              <span className="font-semibold" style={{ color: '#2dd4bf' }}>{fmtCurrency(marginAvailable, 0)} avail</span>
             </div>
           </div>
         )}
         {crossMarginBalance <= 0 && !editingMargin && (
-          <div className="text-[10px] t-3 mt-1">cross-margin balance</div>
+          <div className="text-[10px] t-3 mt-1">tap ✎ to enter Wallet Balance</div>
         )}
       </GlassCard>
 
