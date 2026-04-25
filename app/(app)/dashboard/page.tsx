@@ -186,6 +186,7 @@ export default function Dashboard() {
       <AssetModal
         open={modalOpen}
         asset={editAsset}
+        existingAssets={portfolio.assets}
         onClose={() => { setModalOpen(false); setEditAsset(null); }}
         onSave={handleSaveAsset}
       />

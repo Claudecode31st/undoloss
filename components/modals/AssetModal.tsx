@@ -8,11 +8,12 @@ import { calcMarginCallPrice, fmtCurrency } from '@/lib/calculations';
 interface AssetModalProps {
   open: boolean;
   asset?: CryptoAsset | null;
+  existingAssets?: CryptoAsset[];
   onClose: () => void;
   onSave: (asset: CryptoAsset) => void;
 }
 
-export default function AssetModal({ open, asset, onClose, onSave }: AssetModalProps) {
+export default function AssetModal({ open, asset, existingAssets = [], onClose, onSave }: AssetModalProps) {
   const [symbol, setSymbol] = useState('');
   const [coinGeckoId, setCoinGeckoId] = useState('');
   const [name, setName] = useState('');
@@ -23,9 +24,15 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
   const [direction, setDirection] = useState<'long' | 'short'>('long');
   const [capitalLeft, setCapitalLeft] = useState('');
   const [leverage, setLeverage] = useState('1');
+  const [hedgeFor, setHedgeFor] = useState('');
   const [fetchingPrice, setFetchingPrice] = useState(false);
   const [query, setQuery] = useState('');
   const isEdit = !!asset;
+
+  // Long positions available to hedge (exclude the asset being edited)
+  const hedgeableAssets = existingAssets.filter(
+    a => (a.direction ?? 'long') === 'long' && a.id !== asset?.id,
+  );
 
   useEffect(() => {
     if (asset) {
@@ -35,10 +42,11 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
       setDirection(asset.direction ?? 'long');
       setCapitalLeft(asset.capitalLeft ? String(asset.capitalLeft) : '');
       setLeverage(String(asset.leverage ?? 1));
+      setHedgeFor(asset.hedgeFor ?? '');
     } else {
       setSymbol(''); setName(''); setCoinGeckoId(''); setColor('#f97316');
       setAmount(''); setEntryPrice(''); setCurrentPrice('');
-      setDirection('long'); setCapitalLeft(''); setLeverage('1');
+      setDirection('long'); setCapitalLeft(''); setLeverage('1'); setHedgeFor('');
     }
     setQuery('');
   }, [asset, open]);
@@ -84,6 +92,7 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
       currentPrice: currentNum, color, direction,
       leverage: leverageNum > 1 ? leverageNum : undefined,
       ...(capitalLeft ? { capitalLeft: parseFloat(capitalLeft) } : {}),
+      ...(direction === 'short' && hedgeFor ? { hedgeFor } : {}),
     };
     if (!parsed.symbol || parsed.amount <= 0 || parsed.entryPrice <= 0) return;
     onSave(parsed);
@@ -153,6 +162,55 @@ export default function AssetModal({ open, asset, onClose, onSave }: AssetModalP
             ))}
           </div>
         </div>
+
+        {/* Hedge link — only for short positions when there are longs to link to */}
+        {direction === 'short' && hedgeableAssets.length > 0 && (
+          <div className="mb-4">
+            <label className="text-xs t-2 mb-1.5 block">
+              Hedges position <span className="t-3 text-[10px]">(optional — links this short to a long for TSI signals)</span>
+            </label>
+            <div className="grid gap-1.5">
+              <button
+                type="button"
+                onClick={() => setHedgeFor('')}
+                className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-sm text-left transition-all ${
+                  hedgeFor === '' ? 'border-orange-500/40 text-orange-500' : 't-3 hover:t-2'
+                }`}
+                style={{
+                  border: `1px solid ${hedgeFor === '' ? 'rgba(249,115,22,0.4)' : 'var(--border)'}`,
+                  background: hedgeFor === '' ? 'rgba(249,115,22,0.08)' : 'var(--surface-deep)',
+                }}
+              >
+                <span className="text-base leading-none">—</span>
+                <span className="text-sm">Standalone short (no hedge link)</span>
+              </button>
+              {hedgeableAssets.map(a => (
+                <button
+                  key={a.id}
+                  type="button"
+                  onClick={() => setHedgeFor(a.id)}
+                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-sm text-left transition-all ${
+                    hedgeFor === a.id ? 'border-orange-500/40' : 't-2 hover:t-1'
+                  }`}
+                  style={{
+                    border: `1px solid ${hedgeFor === a.id ? 'rgba(249,115,22,0.4)' : 'var(--border)'}`,
+                    background: hedgeFor === a.id ? 'rgba(249,115,22,0.08)' : 'var(--surface-deep)',
+                  }}
+                >
+                  <span className="w-5 h-5 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] font-bold text-white"
+                    style={{ background: a.color }}>
+                    {a.symbol.slice(0, 1)}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <span className="font-semibold t-1">{a.symbol}</span>
+                    <span className="text-[11px] t-3 ml-1.5">{a.name} · Long</span>
+                  </div>
+                  {hedgeFor === a.id && <span className="text-orange-500 text-xs font-semibold">Selected</span>}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="grid grid-cols-2 gap-3 mb-4">
           <div>

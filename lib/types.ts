@@ -14,6 +14,35 @@ export interface CryptoAsset {
   direction?: 'long' | 'short';
   capitalLeft?: number;
   leverage?: number;
+  hedgeFor?: string; // id of the long position this short position hedges
+}
+
+export interface OHLCCandle {
+  timestamp: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+}
+
+export type HedgeSignalType = 'UNLOCK' | 'WATCH' | 'HOLD' | 'RELOCK';
+export type SignalConfidence = 'High' | 'Moderate' | 'Weak';
+
+export interface HedgeSignalResult {
+  signal: HedgeSignalType;
+  confidence: SignalConfidence;
+  latestTSI: number;
+  latestSignalLine: number;
+  atrRatio: number;
+  priceVsEMA: 'above' | 'below' | 'unknown';
+  wasOversold: boolean;
+  recentCrossUp: boolean;
+  recentCrossDown: boolean;
+  sparkline: Array<{ tsi: number; signal: number }>;
+  reasons: string[];
+  conditionsMet: number;
+  dataPoints: number;
+  insufficientData: boolean;
 }
 
 export interface Prefs {

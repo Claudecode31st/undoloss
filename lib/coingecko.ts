@@ -1,4 +1,33 @@
+import { OHLCCandle } from './types';
+
 const BASE = 'https://api.coingecko.com/api/v3';
+
+// In-memory OHLC cache — daily candles don't change more than once per hour
+const ohlcCache = new Map<string, { data: OHLCCandle[]; fetchedAt: number }>();
+const OHLC_TTL = 60 * 60 * 1000; // 1 hour
+
+/**
+ * Fetch 180 days of daily OHLC candles for a CoinGecko coin ID.
+ * Results are cached in memory for 1 hour to avoid hammering the free tier.
+ */
+export async function fetchOHLC(coinGeckoId: string, days = 180): Promise<OHLCCandle[]> {
+  const cached = ohlcCache.get(coinGeckoId);
+  if (cached && Date.now() - cached.fetchedAt < OHLC_TTL) return cached.data;
+
+  const res = await fetch(
+    `${BASE}/coins/${coinGeckoId}/ohlc?vs_currency=usd&days=${days}`,
+    { cache: 'no-store' },
+  );
+  if (!res.ok) throw new Error(`OHLC fetch failed for ${coinGeckoId}: ${res.status}`);
+
+  const raw: number[][] = await res.json();
+  const data: OHLCCandle[] = raw.map(([timestamp, open, high, low, close]) => ({
+    timestamp, open, high, low, close,
+  }));
+
+  ohlcCache.set(coinGeckoId, { data, fetchedAt: Date.now() });
+  return data;
+}
 
 export interface CoinPrice {
   id: string;

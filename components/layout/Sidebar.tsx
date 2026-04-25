@@ -6,14 +6,15 @@ import { usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 import {
-  LayoutDashboard,
+  LayoutDashboard, ShieldCheck,
   Settings, HelpCircle, Coffee, Sun, Moon
 } from 'lucide-react';
 
 const nav = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/settings',  label: 'Settings',  icon: Settings },
-  { href: '/help',      label: 'Help',      icon: HelpCircle },
+  { href: '/dashboard', label: 'Dashboard',    icon: LayoutDashboard },
+  { href: '/hedge',     label: 'Hedge Manager', icon: ShieldCheck },
+  { href: '/settings',  label: 'Settings',     icon: Settings },
+  { href: '/help',      label: 'Help',         icon: HelpCircle },
 ];
 
 export default function Sidebar() {

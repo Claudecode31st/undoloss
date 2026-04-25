@@ -4,12 +4,13 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import {
-  LayoutDashboard,
+  LayoutDashboard, ShieldCheck,
   MoreHorizontal, Settings, HelpCircle, Coffee, Sun, Moon, X
 } from 'lucide-react';
 
 const primary = [
-  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
+  { href: '/dashboard', label: 'Home',  icon: LayoutDashboard },
+  { href: '/hedge',     label: 'Hedge', icon: ShieldCheck },
 ];
 
 const more = [
