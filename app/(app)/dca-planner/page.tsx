@@ -19,9 +19,11 @@ export default function AverageDownPage() {
   }
 
   return (
-    <>
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 5.5rem)' }}>
       <Header title="Average Down" subtitle="Plan your buy schedule to lower your average entry" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
-      <AverageDownDetail assets={portfolio.assets} />
-    </>
+      <div className="flex-1 min-h-0">
+        <AverageDownDetail assets={portfolio.assets} />
+      </div>
+    </div>
   );
 }
