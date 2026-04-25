@@ -178,6 +178,133 @@ export function calcATR(candles: OHLCCandle[], period = 14): ATRResult | null {
   };
 }
 
+// ─── RSI ─────────────────────────────────────────────────────────────────────
+
+export interface RSIResult {
+  value: number;          // 0–100
+  signal: 'overbought' | 'neutral' | 'oversold';
+  /** True if RSI crossed above 30 within last 3 bars (bullish signal from oversold) */
+  crossAbove30: boolean;
+  /** True if RSI crossed below 70 within last 3 bars (bearish signal from overbought) */
+  crossBelow70: boolean;
+  /** Last ≤30 RSI values for sparkline */
+  sparkline: number[];
+}
+
+export function calcRSI(candles: OHLCCandle[], period = 14): RSIResult | null {
+  if (candles.length < period + 5) return null;
+  const closes = candles.map(c => c.close);
+
+  // Calculate price changes
+  const gains: number[] = [];
+  const losses: number[] = [];
+  for (let i = 1; i < closes.length; i++) {
+    const diff = closes[i] - closes[i - 1];
+    gains.push(diff > 0 ? diff : 0);
+    losses.push(diff < 0 ? -diff : 0);
+  }
+
+  // Wilder smoothing: seed with SMA of first `period` values
+  let avgGain = gains.slice(0, period).reduce((s, v) => s + v, 0) / period;
+  let avgLoss = losses.slice(0, period).reduce((s, v) => s + v, 0) / period;
+
+  const rsiArr: number[] = [];
+  const rs0 = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+  rsiArr.push(rs0);
+
+  for (let i = period; i < gains.length; i++) {
+    avgGain = (avgGain * (period - 1) + gains[i]) / period;
+    avgLoss = (avgLoss * (period - 1) + losses[i]) / period;
+    const rs = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+    rsiArr.push(rs);
+  }
+
+  if (rsiArr.length < 4) return null;
+
+  const n = rsiArr.length;
+  const value = rsiArr[n - 1];
+  const prev  = rsiArr[n - 2];
+  const prev2 = rsiArr[n - 3];
+
+  const crossAbove30 =
+    (value >= 30 && prev  < 30) ||
+    (prev  >= 30 && prev2 < 30);
+  const crossBelow70 =
+    (value <= 70 && prev  > 70) ||
+    (prev  <= 70 && prev2 > 70);
+
+  const signal: RSIResult['signal'] =
+    value >= 70 ? 'overbought' :
+    value <= 30 ? 'oversold'   : 'neutral';
+
+  return {
+    value,
+    signal,
+    crossAbove30,
+    crossBelow70,
+    sparkline: rsiArr.slice(-30),
+  };
+}
+
+// ─── 50-day & 200-day SMA ────────────────────────────────────────────────────
+
+export interface MAResult {
+  ema20: number | null;
+  sma50: number | null;
+  sma200: number | null;
+  priceVsEma20: 'above' | 'below';
+  priceVsSma50: 'above' | 'below';
+  priceVsSma200: 'above' | 'below';
+  trend: 'strong-up' | 'up' | 'mixed' | 'down' | 'strong-down';
+}
+
+export function calcMAs(candles: OHLCCandle[]): MAResult | null {
+  if (candles.length < 20) return null;
+  const closes = candles.map(c => c.close);
+  const price  = closes[closes.length - 1];
+
+  // EMA20
+  const ema20Arr = ema(closes, 20);
+  const ema20Val = ema20Arr[ema20Arr.length - 1];
+  const ema20    = isNaN(ema20Val) ? null : ema20Val;
+
+  // SMA50
+  let sma50: number | null = null;
+  if (closes.length >= 50) {
+    const sum = closes.slice(-50).reduce((s, v) => s + v, 0);
+    sma50 = sum / 50;
+  }
+
+  // SMA200
+  let sma200: number | null = null;
+  if (closes.length >= 200) {
+    const sum = closes.slice(-200).reduce((s, v) => s + v, 0);
+    sma200 = sum / 200;
+  }
+
+  const above20  = ema20  ? price > ema20  : false;
+  const above50  = sma50  ? price > sma50  : false;
+  const above200 = sma200 ? price > sma200 : false;
+
+  const aboveCount = [above20, above50, above200].filter(Boolean).length;
+  const trend: MAResult['trend'] =
+    aboveCount === 3 ? 'strong-up' :
+    aboveCount === 2 ? 'up' :
+    aboveCount === 1 ? 'mixed' :
+    sma200 && ema20 && !above20 && !above50 && !above200 ? 'strong-down' :
+    'down';
+
+  return {
+    ema20,
+    sma50,
+    sma200,
+    priceVsEma20:  above20  ? 'above' : 'below',
+    priceVsSma50:  above50  ? 'above' : 'below',
+    priceVsSma200: above200 ? 'above' : 'below',
+    trend,
+  };
+}
+
 // ─── 20-day EMA ──────────────────────────────────────────────────────────────
 
 export interface EMA20Result {

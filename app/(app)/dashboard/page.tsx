@@ -11,6 +11,8 @@ import PositionPairCard from '@/components/dashboard/PositionPairCard';
 import DeltaNeutralExplainer from '@/components/dashboard/DeltaNeutralExplainer';
 import RecoveryStrategies from '@/components/dashboard/RecoveryStrategies';
 import PriceSimulator from '@/components/dashboard/PriceSimulator';
+import ExitPlanPanel from '@/components/dashboard/ExitPlanPanel';
+import MarketSignals from '@/components/dashboard/MarketSignals';
 
 // ─── Group positions into long+short pairs by symbol ──────────────────────────
 function buildPairs(portfolio: Portfolio): PairInfo[] {
@@ -156,6 +158,12 @@ export default function Dashboard() {
             currentEquity={equity}
             walletBalance={portfolio.account.walletBalance}
           />
+
+          {/* ── Staged exit plan ── */}
+          <ExitPlanPanel pairs={pairs} walletBalance={portfolio.account.walletBalance} />
+
+          {/* ── Market signals (TSI / RSI / MAs) ── */}
+          <MarketSignals pairs={pairs} />
 
           {/* ── Price simulator ── */}
           <PriceSimulator pairs={pairs} account={portfolio.account} />
