@@ -5,13 +5,12 @@ interface HeaderProps {
   title: string;
   subtitle?: string;
   lastUpdated?: string;
-  marketStatus?: string;
   onRefresh?: () => void;
   refreshing?: boolean;
   savedFlash?: boolean;
 }
 
-export default function Header({ title, subtitle, lastUpdated, marketStatus = 'Neutral', onRefresh, refreshing, savedFlash }: HeaderProps) {
+export default function Header({ title, subtitle, lastUpdated, onRefresh, refreshing, savedFlash }: HeaderProps) {
   const time = lastUpdated
     ? new Date(lastUpdated).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })
     : '--:--';
@@ -26,23 +25,17 @@ export default function Header({ title, subtitle, lastUpdated, marketStatus = 'N
 
       {/* Right side */}
       <div className="flex items-center gap-2 flex-shrink-0">
-        {/* Auto-saved indicator */}
         <span className={`flex items-center gap-1 text-[11px] font-medium text-emerald-500 transition-all duration-300 ${savedFlash ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-1'}`}>
           <Check size={11} /> Saved
         </span>
-
-        <div className="flex items-center gap-1.5 px-2.5 py-1 glass rounded-full">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 pulse-dot flex-shrink-0" />
-          <span className="text-xs t-2 whitespace-nowrap">{marketStatus}</span>
-        </div>
         {onRefresh && (
           <button
             onClick={onRefresh}
             disabled={refreshing}
-            className="flex items-center gap-1.5 px-3 py-2 glass rounded-xl t-2 hover:text-orange-400 transition-colors disabled:opacity-50 flex-shrink-0 active:scale-95"
+            className="flex items-center gap-1.5 px-2.5 py-1 glass rounded-full t-2 hover:text-orange-400 transition-colors disabled:opacity-50 flex-shrink-0 active:scale-95"
           >
-            <RefreshCw size={14} className={refreshing ? 'animate-spin' : ''} />
-            <span className="text-xs t-3 whitespace-nowrap">{refreshing ? 'Updating…' : time}</span>
+            <RefreshCw size={13} className={refreshing ? 'animate-spin' : ''} />
+            <span className="text-xs t-2 whitespace-nowrap">{refreshing ? 'Updating…' : time}</span>
           </button>
         )}
       </div>
