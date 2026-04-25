@@ -219,9 +219,10 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
 
         {/* Total row */}
         {assets.length > 0 && (
-          <div className="flex items-center gap-3 px-3 pt-1.5">
+          <div className="flex items-center gap-3 px-3 py-2.5 rounded-xl"
+            style={{ border: '1px solid var(--border)' }}>
             <div style={{ width: 28 }} />
-            <div className="flex-1 min-w-0 text-[11px] t-3 font-medium">Total P/L</div>
+            <div className="flex-1 min-w-0 text-[12px] font-semibold t-2">Total P/L</div>
             <div className="w-36 flex-shrink-0" />
             <div className="w-44 flex-shrink-0" />
             <div className="w-32 flex-shrink-0 text-right">
