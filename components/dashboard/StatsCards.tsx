@@ -92,9 +92,9 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
         </div>
       </GlassCard>
 
-      {/* 5. Risk Score — detailed breakdown */}
+      {/* 5. Risk Score */}
       <GlassCard className="p-4" hover>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-3">
           <div className="p-2 rounded-lg glass-dark w-fit">
             <Shield size={16} className="t-2" />
           </div>
@@ -103,30 +103,40 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
             <div className="text-[10px] font-semibold" style={{ color: riskColor }}>{risk.level}</div>
           </div>
         </div>
-        {/* Three mini bars */}
-        <div className="space-y-1.5 mt-1">
+        <div className="space-y-2">
+          {/* Drawdown */}
           <div>
-            <div className="flex justify-between text-[9px] t-3 mb-0.5">
-              <span>Drawdown</span>
-              <span>{Math.round(risk.drawdownScore)}/40</span>
+            <div className="flex justify-between items-baseline mb-0.5">
+              <span className="text-[9px] t-3">Drawdown</span>
+              <span className={`text-[9px] font-semibold ${risk.drawdownScore === 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                {risk.drawdownScore === 0
+                  ? 'In profit'
+                  : `−${Math.abs(stats.totalUnrealizedPnLPercent).toFixed(1)}% from cost`}
+              </span>
             </div>
             <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
               <div className="h-full rounded-full" style={{ width: `${ddPct}%`, background: '#ef4444' }} />
             </div>
           </div>
+          {/* Concentration */}
           <div>
-            <div className="flex justify-between text-[9px] t-3 mb-0.5">
-              <span>Concentration</span>
-              <span>{Math.round(risk.concentrationScore)}/35</span>
+            <div className="flex justify-between items-baseline mb-0.5">
+              <span className="text-[9px] t-3">Concentration</span>
+              <span className={`text-[9px] font-semibold ${risk.top2AssetsPercent > 75 ? 'text-orange-500' : 'text-emerald-500'}`}>
+                Top 2 = {risk.top2AssetsPercent.toFixed(0)}% of portfolio
+              </span>
             </div>
             <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
               <div className="h-full rounded-full" style={{ width: `${concPct}%`, background: '#f97316' }} />
             </div>
           </div>
+          {/* Asset count */}
           <div>
-            <div className="flex justify-between text-[9px] t-3 mb-0.5">
-              <span>Diversification</span>
-              <span>{Math.round(risk.exposureScore)}/25</span>
+            <div className="flex justify-between items-baseline mb-0.5">
+              <span className="text-[9px] t-3">Asset count</span>
+              <span className={`text-[9px] font-semibold ${assetCount >= 5 ? 'text-emerald-500' : 'text-yellow-500'}`}>
+                {assetCount} position{assetCount !== 1 ? 's' : ''}{assetCount < 5 ? ' — consider diversifying' : ''}
+              </span>
             </div>
             <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
               <div className="h-full rounded-full" style={{ width: `${divPct}%`, background: '#eab308' }} />
