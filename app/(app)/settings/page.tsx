@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Check, Coffee } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
@@ -21,20 +21,30 @@ function Toggle({ enabled, onChange }: { enabled: boolean; onChange: (v: boolean
 
 export default function SettingsPage() {
   const [portfolio, setPortfolio] = useState<Portfolio | null>(null);
-  const [prefs, setPrefs] = useState<Prefs>({ show24hChange: true, showScenarioOutlook: true, showConcentrationRisk: true });
-  const [saved, setSaved] = useState(false);
+  const [prefs, setPrefs]         = useState<Prefs>({ show24hChange: true, showScenarioOutlook: true, showConcentrationRisk: true });
+  const [saved, setSaved]         = useState(false);
+  const isFirstRender             = useRef(true);
+  const saveTimer                 = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  // Load on mount
   useEffect(() => {
     setPortfolio(loadPortfolio());
     setPrefs(loadPrefs());
   }, []);
 
-  const handleSave = () => {
-    if (portfolio) { savePortfolio(portfolio); }
+  // Auto-save prefs whenever they change (skip the initial load)
+  useEffect(() => {
+    if (isFirstRender.current) { isFirstRender.current = false; return; }
     savePrefs(prefs);
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  };
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => setSaved(false), 1800);
+  }, [prefs]);
+
+  // Auto-save portfolio whenever it changes
+  useEffect(() => {
+    if (portfolio) savePortfolio(portfolio);
+  }, [portfolio]);
 
   const handleReset = () => {
     if (confirm('Reset portfolio to default data? This cannot be undone.')) {
@@ -58,13 +68,17 @@ export default function SettingsPage() {
 
           {/* Display preferences */}
           <GlassCard className="p-5">
-            <h2 className="text-sm font-semibold t-1 mb-1">Display Preferences</h2>
-            <p className="text-xs t-3 mb-4">Toggle dashboard sections on or off</p>
+            <div className="flex items-center justify-between mb-1">
+              <h2 className="text-sm font-semibold t-1">Display Preferences</h2>
+              {/* Auto-save indicator */}
+              <span className={`flex items-center gap-1 text-[11px] font-medium text-emerald-500 transition-opacity duration-300 ${saved ? 'opacity-100' : 'opacity-0'}`}>
+                <Check size={11} /> Saved
+              </span>
+            </div>
+            <p className="text-xs t-3 mb-4">Changes save automatically</p>
             <div className="space-y-1">
               {([
-                { key: 'show24hChange',        label: '24h Price Change',         desc: 'Show 24h % change in stats cards' },
-                { key: 'showScenarioOutlook',  label: 'Scenario Outlook',          desc: 'Show Bull / Sideways / Bear section on dashboard' },
-                { key: 'showConcentrationRisk',label: 'Concentration Risk Card',   desc: 'Show concentration breakdown in portfolio sidebar' },
+                { key: 'show24hChange', label: '24h Price Change', desc: 'Show 24h % change in stats cards' },
               ] as { key: keyof Prefs; label: string; desc: string }[]).map(({ key, label, desc }) => (
                 <div key={key} className="flex items-center justify-between px-3 py-3 rounded-xl"
                   style={{ borderBottom: '1px solid var(--border)' }}>
@@ -137,15 +151,6 @@ export default function SettingsPage() {
               Buy Me a Coffee
             </button>
           </GlassCard>
-
-          <button onClick={handleSave}
-            className={`w-full py-3 rounded-xl text-sm font-semibold flex items-center justify-center gap-2 transition-all ${
-              saved
-                ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-600'
-                : 'bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-400 hover:to-orange-500'
-            }`}>
-            {saved ? <><Check size={14} /> Saved!</> : 'Save Settings'}
-          </button>
         </div>
       </div>
     </>

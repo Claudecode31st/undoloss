@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { ChevronDown, BarChart2 } from 'lucide-react';
 import Header from '@/components/layout/Header';
 import StatsCards from '@/components/dashboard/StatsCards';
@@ -64,6 +64,9 @@ export default function Dashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<string>(new Date().toISOString());
   const [portfolioOpen, setPortfolioOpen] = useState(false);
+  const [savedFlash, setSavedFlash] = useState(false);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const isFirstLoad = useRef(true);
 
   useEffect(() => {
     const p = loadPortfolio();
@@ -72,7 +75,15 @@ export default function Dashboard() {
     setPrefs(loadPrefs());
   }, []);
 
-  useEffect(() => { if (portfolio) savePortfolio(portfolio); }, [portfolio]);
+  // Auto-save portfolio + flash indicator (skip price refresh updates)
+  useEffect(() => {
+    if (!portfolio) return;
+    savePortfolio(portfolio);
+    if (isFirstLoad.current) { isFirstLoad.current = false; return; }
+    setSavedFlash(true);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => setSavedFlash(false), 1800);
+  }, [portfolio]);
 
   const refreshPrices = useCallback(async () => {
     if (!portfolio) return;
@@ -133,6 +144,7 @@ export default function Dashboard() {
         lastUpdated={lastUpdated}
         onRefresh={refreshPrices}
         refreshing={refreshing}
+        savedFlash={savedFlash}
       />
 
       {/* Recovery alert */}
