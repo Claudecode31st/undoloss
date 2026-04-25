@@ -8,8 +8,8 @@ export function analyzeBehavior(assets: CryptoAsset[], tradeCount24h = 0, avgCou
 
   // Panic selling risk: high drawdown + high concentration
   let panicLevel: 'Low' | 'Moderate' | 'High' = 'Low';
-  if (drawdown > 20 && risk.concentrationRisk === 'High') panicLevel = 'High';
-  else if (drawdown > 15 || risk.concentrationRisk === 'High') panicLevel = 'Moderate';
+  if (drawdown > 20 && risk.leveragedPortfolioPct > 50) panicLevel = 'High';
+  else if (drawdown > 15 || risk.leveragedPortfolioPct > 50) panicLevel = 'Moderate';
 
   // Overtrading risk: based on trade frequency
   let overtradingLevel: 'Low' | 'Moderate' | 'High' = 'Low';

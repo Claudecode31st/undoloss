@@ -52,10 +52,11 @@ export interface RiskScore {
   score: number;
   level: string;
   drawdownScore: number;
-  concentrationScore: number;
-  exposureScore: number;
-  concentrationRisk: 'Low' | 'Moderate' | 'High';
-  top2AssetsPercent: number;
+  leverageScore: number;
+  liquidationScore: number;
+  leveragedPortfolioPct: number;   // % of portfolio value in leveraged positions
+  closestLiqDistPct: number | null; // distance to nearest liquidation price (negative = below current)
+  maxLeverage: number;             // highest leverage in use
 }
 
 export interface AllocationItem {

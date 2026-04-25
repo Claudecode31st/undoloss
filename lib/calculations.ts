@@ -80,24 +80,51 @@ export function calcAllocation(assets: CryptoAsset[]): AllocationItem[] {
 
 export function calcRiskScore(assets: CryptoAsset[]): RiskScore {
   if (assets.length === 0) {
-    return { score: 0, level: 'Low', drawdownScore: 0, concentrationScore: 0, exposureScore: 0, concentrationRisk: 'Low', top2AssetsPercent: 0 };
+    return { score: 0, level: 'Low Risk', drawdownScore: 0, leverageScore: 0, liquidationScore: 0, leveragedPortfolioPct: 0, closestLiqDistPct: null, maxLeverage: 0 };
   }
 
   const stats = calcPortfolioStats(assets);
-  const allocation = calcAllocation(assets).filter((a) => a.symbol !== 'Others');
+  const totalValue = stats.totalValue || 1;
 
-  // Drawdown component (0-40)
+  // 1. Drawdown (0–40 pts): how far underwater the portfolio is
   const drawdownPercent = Math.abs(Math.min(stats.totalUnrealizedPnLPercent, 0));
   const drawdownScore = Math.min(40, (drawdownPercent / 50) * 40);
 
-  // Concentration component (0-35)
-  const top2Percent = allocation.slice(0, 2).reduce((sum, a) => sum + a.percent, 0);
-  const concentrationScore = Math.min(35, (top2Percent / 100) * 35);
+  // 2. Leverage exposure (0–35 pts): % of portfolio value in leveraged positions
+  const leveragedValue = assets
+    .filter(a => (a.leverage ?? 1) > 1)
+    .reduce((sum, a) => sum + calcAssetPnL(a).marketValue, 0);
+  const leveragedPortfolioPct = (leveragedValue / totalValue) * 100;
+  const maxLeverage = assets.reduce((max, a) => Math.max(max, a.leverage ?? 1), 0);
+  // Score scales with both how much is leveraged and how high the leverage is
+  const leverageScore = Math.min(35, (leveragedPortfolioPct / 100) * 20 + Math.min(15, (maxLeverage - 1) * 1.5));
 
-  // Diversification component (0-25): fewer assets = higher score
-  const diversificationScore = assets.length === 1 ? 25 : assets.length === 2 ? 18 : assets.length === 3 ? 12 : assets.length <= 5 ? 8 : 4;
+  // 3. Liquidation proximity (0–25 pts): how close the nearest margin call is
+  let closestLiqDistPct: number | null = null;
+  for (const asset of assets) {
+    const liqPrice = calcMarginCallPrice(asset);
+    if (liqPrice && asset.currentPrice > 0) {
+      const isLong = (asset.direction ?? 'long') === 'long';
+      // For longs: how far current price is above liq (negative means already liquidated)
+      // For shorts: how far current price is below liq
+      const dist = isLong
+        ? ((asset.currentPrice - liqPrice) / asset.currentPrice) * 100
+        : ((liqPrice - asset.currentPrice) / asset.currentPrice) * 100;
+      if (closestLiqDistPct === null || dist < closestLiqDistPct) {
+        closestLiqDistPct = dist;
+      }
+    }
+  }
+  // Closer to liq = higher score. <10% away = max, >50% away = 0
+  const liquidationScore = closestLiqDistPct === null ? 0
+    : closestLiqDistPct <= 0 ? 25
+    : closestLiqDistPct < 10 ? 25
+    : closestLiqDistPct < 20 ? 18
+    : closestLiqDistPct < 35 ? 10
+    : closestLiqDistPct < 50 ? 4
+    : 0;
 
-  const score = Math.min(100, Math.round(drawdownScore + concentrationScore + diversificationScore));
+  const score = Math.min(100, Math.round(drawdownScore + leverageScore + liquidationScore));
 
   let level: string;
   if (score < 30) level = 'Low Risk';
@@ -105,12 +132,7 @@ export function calcRiskScore(assets: CryptoAsset[]): RiskScore {
   else if (score < 70) level = 'Moderate-High Risk';
   else level = 'High Risk';
 
-  let concentrationRisk: 'Low' | 'Moderate' | 'High';
-  if (top2Percent < 60) concentrationRisk = 'Low';
-  else if (top2Percent < 75) concentrationRisk = 'Moderate';
-  else concentrationRisk = 'High';
-
-  return { score, level, drawdownScore, concentrationScore, exposureScore: diversificationScore, concentrationRisk, top2AssetsPercent: top2Percent };
+  return { score, level, drawdownScore, leverageScore, liquidationScore, leveragedPortfolioPct, closestLiqDistPct, maxLeverage };
 }
 
 export function calcHedge(assets: CryptoAsset[], hedgeRatio: number): HedgeStatus {

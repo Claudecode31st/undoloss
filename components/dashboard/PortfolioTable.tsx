@@ -16,7 +16,7 @@ const fmtK = (v: number) => v >= 1000 ? `$${(v / 1000).toFixed(1)}K` : `$${v.toF
 export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: PortfolioTableProps) {
   const totalPnL = assets.reduce((sum, a) => sum + calcAssetPnL(a).unrealizedPnL, 0);
   const totalInvested = assets.reduce((sum, a) => sum + a.entryPrice * a.amount, 0);
-  const totalValue = assets.reduce((sum, a) => sum + calcAssetPnL(a).currentValue, 0);
+  const totalValue = assets.reduce((sum, a) => sum + calcAssetPnL(a).marketValue, 0);
   const totalPnLPct = totalInvested > 0 ? (totalPnL / totalInvested) * 100 : 0;
 
   return (

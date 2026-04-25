@@ -116,7 +116,7 @@ function buildRiskReduction(
   const actions: RecommendedAction[] = [
     { order: 1, type: 'reduce',   title: `Trim ${topAsset?.symbol ?? 'Top'} by 20%`, description: `Sell ~${fmtCurrency(trimAmount)} to reduce concentration risk` },
     { order: 2, type: 'hold',     title: 'Hold Remaining 80%', description: 'Keep core position intact for potential recovery' },
-    { order: 3, type: 'reassess', title: 'Reassess if Concentration >60%', description: `Current top-2 concentration: ${risk.concentrationRisk}` },
+    { order: 3, type: 'reassess', title: 'Reassess if Leverage Exposure >60%', description: `Current leveraged exposure: ${risk.leveragedPortfolioPct.toFixed(0)}% of portfolio` },
   ];
 
   return {
