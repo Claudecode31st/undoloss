@@ -5,8 +5,6 @@ import Header from '@/components/layout/Header';
 import StatsCards from '@/components/dashboard/StatsCards';
 import PortfolioTable from '@/components/dashboard/PortfolioTable';
 import PortfolioAllocation from '@/components/dashboard/PortfolioAllocation';
-import ExitGuardianPanel from '@/components/dashboard/ExitGuardianPanel';
-import DCAPanel from '@/components/dashboard/DCAPanel';
 import AssetModal from '@/components/modals/AssetModal';
 import { CryptoAsset, Portfolio, Prefs } from '@/lib/types';
 import { loadPortfolio, savePortfolio, loadPrefs } from '@/lib/storage';
@@ -75,7 +73,6 @@ export default function Dashboard() {
     setPrefs(loadPrefs());
   }, []);
 
-  // Auto-save portfolio + flash indicator (skip price refresh updates)
   useEffect(() => {
     if (!portfolio) return;
     savePortfolio(portfolio);
@@ -128,7 +125,6 @@ export default function Dashboard() {
     return { ...p, assets: exists ? p.assets.map((a) => a.id === asset.id ? asset : a) : [...p.assets, asset] };
   });
 
-  /* Recovery alert banner */
   const deepLoss = stats.totalInvested > 0 && stats.totalUnrealizedPnL < 0 &&
     Math.abs(stats.totalUnrealizedPnL / stats.totalInvested) >= 0.3;
 
@@ -147,7 +143,6 @@ export default function Dashboard() {
         savedFlash={savedFlash}
       />
 
-      {/* Recovery alert */}
       {deepLoss && (
         <div className="mb-3 px-4 py-3 rounded-xl flex items-center gap-3"
           style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)' }}>
@@ -155,13 +150,12 @@ export default function Dashboard() {
           <div className="flex-1 min-w-0">
             <span className="text-sm font-semibold text-red-500">Portfolio in deep drawdown</span>
             <span className="text-xs t-3 ml-2">
-              Down {Math.abs((stats.totalUnrealizedPnL / stats.totalInvested) * 100).toFixed(0)}% · Use Recovery Calc and DCA Planner to plan your path back
+              Down {Math.abs((stats.totalUnrealizedPnL / stats.totalInvested) * 100).toFixed(0)}% · Consider averaging down to lower your entry
             </span>
           </div>
         </div>
       )}
 
-      {/* Stats cards */}
       <StatsCards stats={stats} risk={risk} assets={portfolio.assets} assetCount={portfolio.assets.length} show24hChange={prefs.show24hChange} />
 
       {/* ── MOBILE layout ── */}
@@ -175,23 +169,17 @@ export default function Dashboard() {
           <div className="space-y-3">
             {portfolioTable}
             <PortfolioAllocation assets={portfolio.assets} />
-            <ExitGuardianPanel assets={portfolio.assets} />
-            <DCAPanel assets={portfolio.assets} />
           </div>
         </MobileSection>
       </div>
 
       {/* ── DESKTOP layout ── */}
-      <div className="hidden md:block mt-4 space-y-4">
+      <div className="hidden md:block mt-4">
         <div className="grid grid-cols-3 gap-4" style={{ alignItems: 'stretch' }}>
           <div className="col-span-2 flex flex-col">{portfolioTable}</div>
           <div className="col-span-1 flex flex-col min-h-0">
             <PortfolioAllocation assets={portfolio.assets} />
           </div>
-        </div>
-        <div className="grid grid-cols-2 gap-4 items-stretch">
-          <ExitGuardianPanel assets={portfolio.assets} />
-          <DCAPanel assets={portfolio.assets} />
         </div>
       </div>
 

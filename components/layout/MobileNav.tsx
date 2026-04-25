@@ -4,13 +4,12 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import {
-  LayoutDashboard, CalendarDays,
+  LayoutDashboard,
   MoreHorizontal, Settings, HelpCircle, Coffee, Sun, Moon, X
 } from 'lucide-react';
 
 const primary = [
-  { href: '/dashboard',   label: 'Home', icon: LayoutDashboard },
-  { href: '/dca-planner', label: 'Avg Down', icon: CalendarDays },
+  { href: '/dashboard', label: 'Home', icon: LayoutDashboard },
 ];
 
 const more = [
