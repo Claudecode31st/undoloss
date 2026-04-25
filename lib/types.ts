@@ -67,6 +67,10 @@ export interface PortfolioStats {
   avgEntryPrice: number;
   breakevenValue: number;
   change24h: number;
+  /** Cost basis of long positions only — used on Recovery page as "Originally Invested" */
+  longInvested: number;
+  /** Current market value of long positions only */
+  longValue: number;
 }
 
 export interface AssetPnL {

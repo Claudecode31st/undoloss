@@ -15,12 +15,17 @@ function buildStages(current: number, target: number, count = 4): number[] {
   return Array.from({ length: count }, (_, i) => current * Math.pow(factor, i + 1));
 }
 
-/** Simulate portfolio value with overridden prices (by coinGeckoId). */
+/** Simulate long portfolio value with overridden prices (by coinGeckoId).
+ *  Only longs are included — this shows how much the user can recover as prices rise.
+ *  Short hedges offset gains but are managed separately via Hedge Manager signals.
+ */
 function simulatePortfolio(assets: CryptoAsset[], prices: Record<string, number>): number {
-  return assets.reduce((sum, a) => {
-    const price = prices[a.coinGeckoId] ?? a.currentPrice;
-    return sum + calcAssetPnL({ ...a, currentPrice: price }).marketValue;
-  }, 0);
+  return assets
+    .filter(a => (a.direction ?? 'long') !== 'short')
+    .reduce((sum, a) => {
+      const price = prices[a.coinGeckoId] ?? a.currentPrice;
+      return sum + calcAssetPnL({ ...a, currentPrice: price }).marketValue;
+    }, 0);
 }
 
 /** Rank each position by what action to take first for recovery. */
@@ -176,7 +181,9 @@ export default function RecoveryPage() {
     setAssets(p.assets);
     const saved = loadRecoveryTarget();
     const stats = calcPortfolioStats(p.assets);
-    const defaultTarget = stats.totalInvested > 0 ? stats.totalInvested : stats.totalValue * 2;
+    // Default target = original long investment (what the user is trying to recover to)
+    const longInv = stats.longInvested > 0 ? stats.longInvested : stats.totalInvested;
+    const defaultTarget = longInv > 0 ? longInv : stats.totalValue * 2;
     setTarget(saved ?? defaultTarget);
     // Init sim prices to current prices
     const prices: Record<string, number> = {};
@@ -189,8 +196,10 @@ export default function RecoveryPage() {
   }, [editingTarget]);
 
   const stats        = useMemo(() => calcPortfolioStats(assets), [assets]);
-  const currentValue = stats.totalValue;
-  const totalLost    = stats.totalInvested - currentValue;
+  // Use long-only investment as "Originally Invested" — short positions are hedges, not original capital
+  const originalInvested = stats.longInvested > 0 ? stats.longInvested : stats.totalInvested;
+  const currentValue = stats.longValue > 0 ? stats.longValue : stats.totalValue;
+  const totalLost    = originalInvested - currentValue;
   const multiplier   = currentValue > 0 ? target / currentValue : 0;
   const pctNeeded    = (multiplier - 1) * 100;
   const stages       = useMemo(() => buildStages(currentValue, target, 4), [currentValue, target]);
@@ -240,17 +249,19 @@ export default function RecoveryPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {/* Current */}
           <div>
-            <div className="text-[10px] t-3 uppercase tracking-wide mb-0.5">Current Value</div>
+            <div className="text-[10px] t-3 uppercase tracking-wide mb-0.5">Long Portfolio</div>
             <div className="text-xl font-bold t-1">{fmtCurrency(currentValue)}</div>
-            <div className={`text-xs mt-0.5 font-medium ${stats.totalUnrealizedPnL >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
-              {fmtCurrency(stats.totalUnrealizedPnL)} {fmtPercent(stats.totalUnrealizedPnLPercent)}
-            </div>
+            {originalInvested > 0 && (
+              <div className={`text-xs mt-0.5 font-medium ${currentValue >= originalInvested ? 'text-emerald-500' : 'text-red-500'}`}>
+                {fmtPercent(((currentValue - originalInvested) / originalInvested) * 100)} from entry
+              </div>
+            )}
           </div>
 
           {/* Invested / lost */}
           <div>
             <div className="text-[10px] t-3 uppercase tracking-wide mb-0.5">Originally Invested</div>
-            <div className="text-xl font-bold t-1">{fmtCurrency(stats.totalInvested)}</div>
+            <div className="text-xl font-bold t-1">{fmtCurrency(originalInvested)}</div>
             {totalLost > 0 && (
               <div className="text-xs mt-0.5 font-medium text-red-500">
                 −{fmtCurrency(totalLost)} lost

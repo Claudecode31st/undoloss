@@ -23,20 +23,27 @@ export function calcAssetPnL(asset: CryptoAsset): AssetPnL {
 
 export function calcPortfolioStats(assets: CryptoAsset[]): PortfolioStats {
   if (assets.length === 0) {
-    return { totalValue: 0, totalInvested: 0, totalUnrealizedPnL: 0, totalUnrealizedPnLPercent: 0, avgEntryPrice: 0, breakevenValue: 0, change24h: 0 };
+    return { totalValue: 0, totalInvested: 0, totalUnrealizedPnL: 0, totalUnrealizedPnLPercent: 0, avgEntryPrice: 0, breakevenValue: 0, change24h: 0, longInvested: 0, longValue: 0 };
   }
 
   let totalValue = 0;
   let totalInvested = 0;
   let totalChange24h = 0;
+  let longInvested = 0;
+  let longValue = 0;
 
   for (const asset of assets) {
     const pnl = calcAssetPnL(asset);
+    const isShort = asset.direction === 'short';
     totalValue += pnl.marketValue;
     totalInvested += asset.entryPrice * asset.amount;
+    if (!isShort) {
+      longInvested += asset.entryPrice * asset.amount;
+      longValue += pnl.marketValue;
+    }
     if (asset.change24h) {
       // For shorts, 24h change in asset price = opposite direction for the position
-      const sign = asset.direction === 'short' ? -1 : 1;
+      const sign = isShort ? -1 : 1;
       totalChange24h += sign * (asset.currentPrice * asset.amount * asset.change24h) / 100;
     }
   }
@@ -47,7 +54,7 @@ export function calcPortfolioStats(assets: CryptoAsset[]): PortfolioStats {
   const avgEntryPrice = totalAmount === 0 ? 0 : totalInvested / totalAmount;
   const change24h = totalInvested === 0 ? 0 : (totalChange24h / totalInvested) * 100;
 
-  return { totalValue, totalInvested, totalUnrealizedPnL, totalUnrealizedPnLPercent, avgEntryPrice, breakevenValue: totalInvested, change24h };
+  return { totalValue, totalInvested, totalUnrealizedPnL, totalUnrealizedPnLPercent, avgEntryPrice, breakevenValue: totalInvested, change24h, longInvested, longValue };
 }
 
 export function calcAllocation(assets: CryptoAsset[]): AllocationItem[] {

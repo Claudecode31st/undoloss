@@ -85,9 +85,13 @@ export default function PortfolioAllocation({ assets }: PortfolioAllocationProps
               : lossPct < 25  ? '#f97316'          // orange — meaningful loss
               :                 '#ef4444';          // red — deep loss, hard to recover
 
-            // Progress bar: how close current price is to entry
-            const progress = asset.entryPrice > 0
-              ? Math.min(100, Math.max(0, (asset.currentPrice / asset.entryPrice) * 100))
+            // Progress bar: how close current price is to breakeven (entry)
+            // For longs: fills as price rises toward entry
+            // For shorts: fills as price falls toward entry (inverted ratio)
+            const progress = asset.entryPrice > 0 && asset.currentPrice > 0
+              ? isShort
+                ? Math.min(100, Math.max(0, (asset.entryPrice / asset.currentPrice) * 100))
+                : Math.min(100, Math.max(0, (asset.currentPrice / asset.entryPrice) * 100))
               : 0;
 
             return (
