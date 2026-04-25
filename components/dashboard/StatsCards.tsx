@@ -25,8 +25,15 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
   }, [editingMargin]);
 
   function commitMargin() {
-    const val = parseFloat(marginInput.replace(/[^0-9.]/g, ''));
-    if (val > 0) onCrossMarginChange?.(val);
+    const trimmed = marginInput.trim();
+    // Empty input or '0' → clear the balance (reset to 0)
+    if (trimmed === '' || trimmed === '0') {
+      onCrossMarginChange?.(0);
+      setEditingMargin(false);
+      return;
+    }
+    const val = parseFloat(trimmed.replace(/[^0-9.]/g, ''));
+    if (!isNaN(val) && val >= 0) onCrossMarginChange?.(val);
     setEditingMargin(false);
   }
 
@@ -176,10 +183,20 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
                 className="glass-input w-full rounded-lg px-2 py-1 text-sm font-bold t-1"
                 placeholder="e.g. 50281"
               />
-              <button onClick={commitMargin} className="p-1 rounded text-emerald-500 hover:bg-emerald-500/10 flex-shrink-0"><Check size={12} /></button>
-              <button onClick={() => setEditingMargin(false)} className="p-1 rounded t-3 hover:t-1 flex-shrink-0"><X size={12} /></button>
+              <button onClick={commitMargin} className="p-1 rounded text-emerald-500 hover:bg-emerald-500/10 flex-shrink-0" title="Save"><Check size={12} /></button>
+              <button onClick={() => setEditingMargin(false)} className="p-1 rounded t-3 hover:t-1 flex-shrink-0" title="Cancel"><X size={12} /></button>
             </div>
-            <p className="text-[9px] t-3 leading-snug">Enter <span className="font-semibold text-teal-400">Wallet Balance</span> from your exchange — not Equity or Available Balance. Used for liq price calculation.</p>
+            <div className="flex items-center justify-between">
+              <p className="text-[9px] t-3 leading-snug">Enter <span className="font-semibold text-teal-400">Wallet Balance</span> (not Equity). Leave blank to clear.</p>
+              {crossMarginBalance > 0 && (
+                <button
+                  onClick={() => { onCrossMarginChange?.(0); setEditingMargin(false); }}
+                  className="text-[9px] text-red-400 hover:text-red-300 underline flex-shrink-0 ml-1"
+                >
+                  Clear
+                </button>
+              )}
+            </div>
           </>
         ) : (
           <div className={`text-xl font-bold ${crossMarginBalance > 0 ? 'text-teal-500' : 't-3'}`}>
