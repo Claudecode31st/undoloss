@@ -33,17 +33,33 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
   const levPct  = risk.leverageScore   / 35 * 100;
   const liqPct  = risk.liquidationScore / 25 * 100;
 
-  // Leverage label
+  // Leverage label + progressive colour
+  // Risk rises with both how high the leverage is AND how much of the portfolio is in it
   const levLabel = risk.maxLeverage <= 1
     ? 'No leverage'
-    : `${risk.leveragedPortfolioPct.toFixed(0)}% at up to ${risk.maxLeverage}×`;
+    : `${risk.leveragedPortfolioPct.toFixed(0)}% of portfolio at ${risk.maxLeverage}×`;
+  const levColor =
+    risk.maxLeverage <= 1                                              ? '#22c55e' // green  — no leverage
+    : risk.maxLeverage <= 3 && risk.leveragedPortfolioPct <= 25       ? '#22c55e' // green  — low lev, small slice
+    : risk.maxLeverage <= 3 && risk.leveragedPortfolioPct <= 60       ? '#eab308' // yellow — low lev, bigger slice
+    : risk.maxLeverage <= 5 && risk.leveragedPortfolioPct <= 40       ? '#eab308' // yellow — mid lev, moderate slice
+    : risk.maxLeverage <= 5                                           ? '#f97316' // orange — mid lev, large slice
+    : risk.leveragedPortfolioPct <= 25                                ? '#f97316' // orange — high lev, small slice
+    :                                                                   '#ef4444'; // red    — high lev, large slice
 
-  // Liquidation distance label
+  // Liquidation distance label + progressive colour
   const liqLabel = risk.closestLiqDistPct === null
     ? 'No leveraged positions'
     : risk.closestLiqDistPct <= 0
     ? 'Already liquidated!'
     : `Nearest liq −${risk.closestLiqDistPct.toFixed(0)}% away`;
+  const liqColor =
+    risk.closestLiqDistPct === null  ? '#22c55e'
+    : risk.closestLiqDistPct <= 0   ? '#ef4444'
+    : risk.closestLiqDistPct < 10   ? '#ef4444'
+    : risk.closestLiqDistPct < 20   ? '#f97316'
+    : risk.closestLiqDistPct < 35   ? '#eab308'
+    :                                  '#22c55e';
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-4">
@@ -134,29 +150,24 @@ export default function StatsCards({ stats, risk, assets, assetCount, show24hCha
           <div>
             <div className="flex justify-between items-baseline mb-0.5">
               <span className="text-[9px] t-3">Leverage</span>
-              <span className={`text-[9px] font-semibold ${risk.maxLeverage <= 1 ? 'text-emerald-500' : risk.leveragedPortfolioPct > 50 ? 'text-red-500' : 'text-orange-500'}`}>
+              <span className="text-[9px] font-semibold" style={{ color: levColor }}>
                 {levLabel}
               </span>
             </div>
             <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-              <div className="h-full rounded-full" style={{ width: `${levPct}%`, background: '#f97316' }} />
+              <div className="h-full rounded-full" style={{ width: `${levPct}%`, background: levColor }} />
             </div>
           </div>
           {/* Liquidation proximity */}
           <div>
             <div className="flex justify-between items-baseline mb-0.5">
               <span className="text-[9px] t-3">Liquidation</span>
-              <span className={`text-[9px] font-semibold ${
-                risk.closestLiqDistPct === null ? 'text-emerald-500'
-                : risk.closestLiqDistPct < 10 ? 'text-red-500'
-                : risk.closestLiqDistPct < 25 ? 'text-orange-500'
-                : 'text-emerald-500'
-              }`}>
+              <span className="text-[9px] font-semibold" style={{ color: liqColor }}>
                 {liqLabel}
               </span>
             </div>
             <div className="h-1 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
-              <div className="h-full rounded-full" style={{ width: `${liqPct}%`, background: '#ef4444' }} />
+              <div className="h-full rounded-full" style={{ width: `${liqPct}%`, background: liqColor }} />
             </div>
           </div>
         </div>
