@@ -56,7 +56,7 @@ export default function DCAPanel({ assets }: DCAPanelProps) {
       <div className="flex items-start justify-between gap-4 mb-3 flex-wrap">
         <h2 className="text-sm font-semibold t-1 flex items-center gap-2">
           <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
-          DCA Planner
+          Average Down
         </h2>
         {/* Controls row */}
         <div className="flex items-center gap-3 flex-wrap">

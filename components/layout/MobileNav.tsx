@@ -10,7 +10,7 @@ import {
 
 const primary = [
   { href: '/dashboard',   label: 'Home', icon: LayoutDashboard },
-  { href: '/dca-planner', label: 'DCA',  icon: CalendarDays },
+  { href: '/dca-planner', label: 'Avg Down', icon: CalendarDays },
 ];
 
 const more = [

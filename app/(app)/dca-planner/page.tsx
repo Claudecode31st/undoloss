@@ -1,10 +1,10 @@
 'use client';
 import Header from '@/components/layout/Header';
 import GlassCard from '@/components/ui/GlassCard';
-import DCAPanel from '@/components/dashboard/DCAPanel';
+import AverageDownDetail from '@/components/dashboard/AverageDownDetail';
 import { usePortfolioRefresh } from '@/lib/usePortfolioRefresh';
 
-export default function DCAPlanner() {
+export default function AverageDownPage() {
   const { portfolio, refreshing, lastUpdated, refresh } = usePortfolioRefresh();
 
   if (!portfolio) return <div className="t-3 p-8">Loading…</div>;
@@ -12,7 +12,7 @@ export default function DCAPlanner() {
   if (portfolio.assets.length === 0) {
     return (
       <>
-        <Header title="DCA Planner" subtitle="Build your buy schedule" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
+        <Header title="Average Down" subtitle="Plan your buy schedule to lower your average entry" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
         <GlassCard className="p-8 text-center"><p className="t-3 text-sm">Add assets to your portfolio first.</p></GlassCard>
       </>
     );
@@ -20,8 +20,8 @@ export default function DCAPlanner() {
 
   return (
     <>
-      <Header title="DCA Planner" subtitle="Your month-by-month buy schedule" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
-      <DCAPanel assets={portfolio.assets} />
+      <Header title="Average Down" subtitle="Plan your buy schedule to lower your average entry" lastUpdated={lastUpdated} onRefresh={refresh} refreshing={refreshing} />
+      <AverageDownDetail assets={portfolio.assets} />
     </>
   );
 }
