@@ -79,13 +79,16 @@ export default function Sidebar() {
             </div>
           </button>
         )}
-        <p className="text-[10px] t-3 text-center leading-tight">
-          If this tool helped you,<br />feel free to support ❤️
-        </p>
-        <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gradient-to-r from-pink-600/30 to-rose-600/30 border border-pink-500/30 text-pink-400 text-xs font-medium hover:from-pink-600/40 hover:to-rose-600/40 transition-all duration-200">
-          <Heart size={12} fill="currentColor" />
-          Donate
-        </button>
+        <div className="rounded-xl p-3 text-center space-y-2.5" style={{ background: 'rgba(236,72,153,0.06)', border: '1px solid rgba(236,72,153,0.15)' }}>
+          <p className="text-[10px] leading-snug" style={{ color: 'var(--text-3)' }}>
+            If this tool helped you,<br />feel free to support 🙏
+          </p>
+          <button className="w-full flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-200 hover:opacity-90 active:scale-95"
+            style={{ background: 'linear-gradient(135deg, #ec4899, #f43f5e)', color: '#fff', boxShadow: '0 2px 8px rgba(244,63,94,0.35)' }}>
+            <Heart size={11} fill="currentColor" />
+            Donate
+          </button>
+        </div>
       </div>
     </aside>
   );

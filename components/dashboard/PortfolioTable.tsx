@@ -132,24 +132,32 @@ export default function PortfolioTable({ assets, onAdd, onEdit, onDelete }: Port
                         </div>
                         {/* Chips row — always on its own line, never expands the column */}
                         <div className="flex items-center gap-1 mt-1 flex-wrap">
-                          <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full leading-none ${
-                            isLong ? 'bg-emerald-500/15 text-emerald-600' : 'bg-red-500/15 text-red-500'
-                          }`}>
+                          {/* Direction + leverage chip */}
+                          <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none ${
+                            isLong
+                              ? 'text-emerald-600 dark:text-emerald-400'
+                              : 'text-red-500'
+                          }`} style={{
+                            background: isLong ? 'rgba(34,197,94,0.1)' : 'rgba(239,68,68,0.1)',
+                            border: `1px solid ${isLong ? 'rgba(34,197,94,0.25)' : 'rgba(239,68,68,0.25)'}`,
+                          }}>
                             {isLong ? 'L' : 'S'}{asset.leverage && asset.leverage > 1 ? ` ${asset.leverage}×` : ''}
                           </span>
+                          {/* Capital chip */}
                           {asset.capitalLeft ? (
-                            <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
-                              style={{ background: 'rgba(20,184,166,0.1)', border: '1px solid rgba(20,184,166,0.2)' }}>
-                              <Wallet size={7} className="text-teal-500" />
-                              <span className="text-[10px] font-semibold text-teal-600 dark:text-teal-400">{fmtCurrency(asset.capitalLeft, 0)}</span>
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-teal-600 dark:text-teal-400"
+                              style={{ background: 'rgba(20,184,166,0.1)', border: '1px solid rgba(20,184,166,0.25)' }}>
+                              <Wallet size={8} />
+                              {fmtCurrency(asset.capitalLeft, 0)}
                             </span>
                           ) : null}
+                          {/* Liquidation chip */}
                           {liqPrice ? (
-                            <span className="flex items-center gap-0.5 px-1.5 py-0.5 rounded-full"
-                              style={{ background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.18)' }}>
-                              <AlertTriangle size={7} className="text-red-500" />
-                              <span className="text-[10px] font-semibold text-red-500">{fmtK(liqPrice)}</span>
-                              {distToLiq !== null && <span className="text-[9px] text-red-400 ml-0.5">{distToLiq.toFixed(0)}%</span>}
+                            <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold leading-none text-red-500"
+                              style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.25)' }}>
+                              <AlertTriangle size={8} />
+                              {fmtK(liqPrice)}
+                              {distToLiq !== null && <span className="ml-0.5 text-red-400">{distToLiq.toFixed(0)}%</span>}
                             </span>
                           ) : null}
                         </div>
